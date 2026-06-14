@@ -1,0 +1,1036 @@
+/*
+ * ===================================================================
+ * FEUILLE DE STYLE PRINCIPALE
+ * PROJET : SITE WEB COMMUNAUTÉ ARMA REFORGER
+ * VERSION : 1.0
+ * DÉVELOPPEUR : REFORGER (Gemini)
+ * ===================================================================
+*/
+
+
+/*
+ * ===================================================================
+ * 1. DECLARATION DE LA FAMILLE DE POLICES "HITMARKER TEXT"
+ * ===================================================================
+ * On déclare chaque poids et style de notre police pour un contrôle total.
+*/
+
+/* -- Style Normal (Regular) -- */
+@font-face {
+  font-family: 'HitmarkerText';
+  src: url('fonts/HitmarkerText-Regular.woff2') format('woff2'),
+       url('fonts/HitmarkerText-Regular.woff') format('woff');
+  font-weight: 400; /* Valeur pour 'normal' */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* -- Style Medium -- */
+@font-face {
+  font-family: 'HitmarkerText';
+  src: url('fonts/HitmarkerText-Medium.woff2') format('woff2'),
+       url('fonts/HitmarkerText-Medium.woff') format('woff');
+  font-weight: 500; /* Valeur pour 'medium' */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* -- Style Gras (Bold) -- */
+@font-face {
+  font-family: 'HitmarkerText';
+  src: url('fonts/HitmarkerText-Bold.woff2') format('woff2'),
+       url('fonts/HitmarkerText-Bold.woff') format('woff');
+  font-weight: 700; /* Valeur pour 'bold' */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* -- Style Italique -- */
+@font-face {
+  font-family: 'HitmarkerText';
+  src: url('fonts/HitmarkerText-Italic.woff2') format('woff2'),
+       url('fonts/HitmarkerText-Italic.woff') format('woff');
+  font-weight: 400; /* Basé sur le poids normal */
+  font-style: italic;
+  font-display: swap;
+}
+
+
+/*
+ * ===================================================================
+ * 2. STYLES GÉNÉRAUX & UTILITAIRES
+ * ===================================================================
+ * Base pour l'ensemble du site.
+*/
+
+body {
+  margin: 0;
+  background-color: #121212; /* Fond sombre par défaut */
+  color: #fff; /* Texte blanc par défaut */
+  font-family: 'HitmarkerText', sans-serif; /* Application de notre police */
+  font-weight: 400; /* Poids normal par défaut */
+  line-height: 1.6; /* Hauteur de ligne pour une meilleure lisibilité */
+}
+
+/* Utilitaires : un container pour centrer et limiter la largeur du contenu */
+.container {
+    max-width: 1200px; /* Largeur maximale */
+    margin: 0 auto; /* Centrage automatique */
+    padding: 0 20px; /* Espacement de sécurité sur les côtés */
+}
+
+
+/*
+ * ===================================================================
+ * 3. EN-TÊTE PRINCIPAL (HEADER)
+ * ===================================================================
+ * Barre de navigation supérieure avec le logo.
+*/
+
+.main-header {
+  position: absolute; /* Flotte au-dessus du contenu de la page */
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 0;
+  z-index: 10; /* Priorité d'affichage élevée pour être toujours au-dessus */
+  background-color: rgba(0, 0, 0, 0.4); /* Fond noir semi-transparent */
+  backdrop-filter: blur(5px); /* Effet de flou sur ce qui est derrière (optionnel) */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3); /* Ombre portée discrète */
+}
+
+.main-header .container {
+    display: flex; /* Active Flexbox pour un alignement facile */
+    justify-content: space-between; /* Espace maximal entre logo et menu (futur) */
+    align-items: center; /* Alignement vertical parfait */
+}
+
+.main-header .logo img {
+  height: 60px; /* Hauteur fixe du logo */
+  width: auto; /* La largeur s'ajuste automatiquement */
+  display: block; /* Évite les problèmes de marge sous l'image */
+}
+
+
+/*
+ * ===================================================================
+ * 4. SECTION HÉROÏQUE (VIDÉO)
+ * ===================================================================
+ * La première chose que les visiteurs voient.
+*/
+
+.home .hero-section {
+  height: 100vh; /* Prend 100% de la hauteur de l'écran */
+  width: 100%;
+  position: relative; /* Référence pour le positionnement de ses enfants */
+  display: flex;
+  align-items: center; /* Centre le contenu verticalement */
+  justify-content: center; /* Centre le contenu horizontalement */
+  text-align: center;
+}
+
+.home .hero-section video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Technique de centrage absolu */
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: 1; /* Couche la plus basse */
+  object-fit: cover; /* S'assure que la vidéo couvre l'espace sans se déformer */
+}
+
+.home .video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.65); /* Filtre noir pour la lisibilité */
+  z-index: 2; /* Au-dessus de la vidéo */
+}
+
+.home .hero-content {
+  position: relative;
+  z-index: 3; /* Au-dessus de tout le reste */
+  padding: 20px;
+}
+
+.home .hero-content h1 {
+  font-weight: 700; /* Utilise le fichier Bold */
+  font-size: 4.5rem; /* Grande taille, relative */
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.7); /* Ombre pour détacher le texte */
+}
+
+.home .hero-content p {
+  font-weight: 500; /* Utilise le fichier Medium */
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+
+/*
+ * ===================================================================
+ * 5. ADAPTATION MOBILE (MEDIA QUERIES)
+ * ===================================================================
+ * Ces règles s'appliquent uniquement sur les écrans de 768px ou moins.
+*/
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.5rem; /* Titre plus petit sur mobile */
+  }
+  .hero-content p {
+    font-size: 1rem;
+  }
+  .main-header .logo img {
+      height: 45px; /* Logo plus petit sur mobile */
+  }
+}
+/*
+ * ===================================================================
+ * 5. STATUTS DES SERVEURS & BOUTONS D'ACTION
+ * ===================================================================
+*/
+
+/* Conteneur principal pour les boîtes de statut */
+.server-status-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Espace entre les boîtes */
+  margin-top: 40px;
+  flex-wrap: wrap; /* Permet aux boîtes de passer à la ligne sur mobile */
+}
+
+.server-status-box {
+  background-color: rgba(18, 18, 18, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 15px 25px;
+  width: 280px;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.server-status-box:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-3px);
+}
+
+.server-status-box .status-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.server-status-box h3 {
+  margin: 0 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 500; /* Medium */
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: background-color 0.5s ease;
+}
+
+.status-dot.online {
+  background-color: #28a745; /* Vert tactique */
+  box-shadow: 0 0 8px #28a745;
+}
+
+.status-dot.offline {
+  background-color: #dc3545; /* Rouge */
+}
+
+.player-count {
+  font-size: 2.5rem;
+  font-weight: 700; /* Bold */
+  text-align: center;
+}
+
+.player-count span {
+  color: #fff;
+}
+
+/* --- Boutons d'action --- */
+.action-buttons {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: 'HitmarkerText', sans-serif;
+  font-weight: 500;
+  text-decoration: none;
+  color: #fff;
+  padding: 12px 30px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.btn-primary {
+  background-color: #00A8FF; /* Un bleu électrique comme couleur d'accentuation */
+  box-shadow: 0 0 15px rgba(0, 168, 255, 0.4);
+}
+
+.btn-primary:hover {
+  background-color: #33bbff;
+  box-shadow: 0 0 25px rgba(0, 168, 255, 0.7);
+  transform: translateY(-3px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-secondary:hover {
+  background-color: #fff;
+  color: #121212;
+  border-color: #fff;
+}
+/*
+ * ===================================================================
+ * 6. NAVIGATION PRINCIPALE
+ * ===================================================================
+*/
+.main-nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none; /* Retire les puces */
+  display: flex;
+  gap: 30px; /* Espace entre les liens */
+}
+
+.main-nav a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500; /* Medium */
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  padding: 5px 0;
+  transition: color 0.3s ease;
+}
+
+.main-nav a:hover {
+  color: #fff;
+}
+
+/* Soulignage animé au survol */
+.main-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #00A8FF;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.main-nav a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/*
+ * ===================================================================
+ * 7. SECTIONS DE CONTENU
+ * ===================================================================
+*/
+.content-section {
+  padding: 80px 0;
+  position: relative;
+  z-index: 5; /* Priorité d'affichage moyenne, suffisante pour passer au-dessus de la vidéo */
+  background-color: #121212; /* On s'assure qu'elle a un fond opaque */
+}
+.alternate-bg {
+    background-color: #1a1a1a; /* On ré-applique le fond alternatif pour la section actualités */
+}
+
+.content-section h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+}
+
+/* Ligne décorative sous les titres de section */
+.content-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: #00A8FF;
+}
+
+/* Fond alternatif pour rythmer la page */
+.alternate-bg {
+  background-color: #1a1a1a;
+}
+
+/* Comportement de défilement fluide */
+html {
+    scroll-behavior: smooth;
+}
+/*
+ * ===================================================================
+ * 8. STYLES SPÉCIFIQUES AU RÈGLEMENT
+ * ===================================================================
+*/
+.last-updated {
+  text-align: center;
+  margin-bottom: 40px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.rules-container {
+  max-width: 900px; /* Conteneur plus étroit pour la lecture */
+  margin: 0 auto;
+  text-align: left;
+}
+
+.rule-category {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-left: 4px solid #00A8FF;
+  padding: 20px 30px;
+  margin-bottom: 30px;
+}
+
+.rule-category h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 700;
+  color: #00A8FF;
+}
+
+.rule-category ul, .rule-category ol {
+  padding-left: 20px;
+}
+
+.rule-category li {
+  margin-bottom: 10px;
+}
+
+.disclaimer {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(220, 53, 69, 0.1); /* Fond rouge très léger */
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  border-radius: 4px;
+  font-weight: 500;
+}
+/*
+ * ===================================================================
+ * 9. STYLES SPÉCIFIQUES AUX ACTUALITÉS
+ * ===================================================================
+*/
+.news-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Une seule colonne pour l'instant */
+  gap: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.news-card {
+  background-color: #1f1f1f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden; /* Pour que la vidéo respecte les coins arrondis */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.news-video-container video {
+  width: 100%;
+  display: block; /* Supprime l'espace blanc sous la vidéo */
+}
+
+.news-content {
+  padding: 25px 30px;
+  text-align: left;
+}
+
+.news-date {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.news-card h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.news-card p {
+  margin: 0 0 25px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400; /* Regular */
+}
+
+.news-btn {
+    /* Style optionnel si vous voulez qu'il soit différent des autres */
+    padding: 10px 25px;
+    font-size: 0.9rem;
+}
+/*
+ * ===================================================================
+ * 10. STYLES SPÉCIFIQUES À L'ÉQUIPE
+ * ===================================================================
+*/
+.team-grid {
+    display: grid;
+    /* Crée 1 à 4 colonnes selon l'espace disponible */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px; /* Espace entre les cartes */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.team-member-card {
+    background-color: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.team-member-card:hover {
+    background-color: #222;
+    border-color: #00A8FF;
+}
+
+.member-role {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.member-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Style spécifique pour la haute direction */
+.founder, .manager, .com-manager {
+    border-top: 3px solid #00A8FF;
+}
+
+/* --- Section des administrateurs --- */
+
+.admin-section-title {
+    text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 70px 0 30px 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.admin-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.team-member-card.admin {
+    text-align: left;
+    background: repeating-linear-gradient(
+        45deg,
+        #1a1a1a,
+        #1a1a1a 10px,
+        #1c1c1c 10px,
+        #1c1c1c 20px
+    ); /* Fond subtilement hachuré */
+}
+
+.member-name-list {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.8;
+    margin: 0;
+}
+/*
+ * ===================================================================
+ * 12. SYSTÈME D'ONGLETS POUR RÈGLEMENT
+ * ===================================================================
+*/
+.common-protocol {
+    border-left-color: #f0ad4e; /* Orange pour les règles communes */
+    text-align: left;
+    max-width: 900px;
+    margin: 40px auto;
+}
+.common-protocol h3 {
+    color: #f0ad4e;
+}
+
+.rules-tabs {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.tab-link {
+  font-family: 'HitmarkerText', sans-serif;
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 25px;
+  margin: 0 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.tab-link:hover {
+  background-color: rgba(0, 168, 255, 0.2);
+  color: #fff;
+}
+
+.tab-link.active {
+  background-color: #00A8FF;
+  border-color: #00A8FF;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 168, 255, 0.5);
+}
+
+.rules-content {
+  display: none; /* Cacher tous les contenus par défaut */
+  animation: fadeIn 0.5s ease;
+}
+
+.rules-content.active {
+  display: block; /* Afficher uniquement le contenu actif */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}  
+/*
+ * ===================================================================
+ * 13 (v2). CORRECTIF DÉFINITIF POUR BANNIÈRES D'ARTICLES
+ * ===================================================================
+*/
+
+/* Étape 1 : On s'assure que le header est le conteneur de référence */
+.article-header {
+    min-height: 1vh; /* On utilise min-height pour plus de flexibilité */
+    height: auto; /* La hauteur s'adaptera au contenu */
+    padding-top: 100px; /* On ajoute un espacement conséquent en haut */
+    padding-bottom: 10px; /* On ajoute un peu d'espace en bas */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Étape 2 : L'overlay est un enfant direct, positionné à l'arrière-plan */
+.article-header .video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Il est à la couche 1 (la plus basse) */
+}
+
+/* Étape 3 : Le conteneur du texte est aussi un enfant direct, positionné AU-DESSUS */
+.article-header .container {
+    position: relative; /* Essentiel pour que z-index fonctionne */
+    z-index: 2; /* Il est à la couche 2, donc au-dessus de l'overlay */
+}
+/*
+ * ===================================================================
+ * 14. MISE À JOUR DE LA PAGE ÉQUIPE
+ * ===================================================================
+*/
+
+.team-intro {
+    display: flex; /* Aligne l'image et le texte côte à côte */
+    align-items: center; /* Centre verticalement */
+    gap: 40px; /* Espace entre l'image et le texte */
+    margin-bottom: 80px; /* Espace avant la liste du staff */
+    background-color: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 30px;
+}
+
+.team-intro img {
+    max-width: 40%; /* L'image prend 40% de la largeur */
+    height: auto;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-intro .intro-text {
+    flex: 1; /* Le texte prend le reste de l'espace disponible */
+}
+
+.team-intro .intro-text p {
+    font-size: 1.2rem;
+    font-weight: 400; /* Regular */
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+}
+
+/* --- Adaptation pour les écrans plus petits --- */
+@media (max-width: 992px) {
+    .team-intro {
+        flex-direction: column; /* Passe en mode colonne sur mobile */
+    }
+    .team-intro img {
+        max-width: 100%; /* L'image prend toute la largeur */
+    }
+}
+.no-top-padding h2 {
+  margin-top: 0;
+}
+/*
+ * ===================================================================
+ * 16. PIED DE PAGE (FOOTER)
+ * ===================================================================
+*/
+
+.main-footer {
+    background-color: #0a0a0a; /* Un noir un peu plus profond */
+    padding: 50px 0 20px 0;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 40px;
+    flex-wrap: wrap; /* Permet de passer en colonne sur mobile */
+}
+
+.footer-logo img {
+    height: 50px;
+    opacity: 0.6;
+}
+
+.main-footer h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-nav li {
+    margin-bottom: 10px;
+}
+
+.footer-nav a, .social-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-nav a:hover, .social-link:hover {
+    color: #00A8FF;
+}
+
+.social-link {
+    display: inline-block;
+    padding: 8px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.footer-copyright {
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+}
+
+.footer-copyright p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+/*
+ * ===================================================================
+ * 17. MENU HAMBURGER & RESPONSIVE NAVIGATION
+ * ===================================================================
+*/
+
+.hamburger-menu {
+    display: none; /* Caché par défaut sur grand écran */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.hamburger-menu .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px auto;
+    background-color: #fff;
+    transition: all 0.3s ease-in-out;
+}
+
+/* On applique ces styles sur les écrans de 768px ou moins */
+@media (max-width: 768px) {
+    .main-nav ul {
+        /* On transforme le menu en un bloc vertical */
+        position: absolute;
+        top: 80px; /* Hauteur de votre header */
+        left: 0;
+        width: 100%;
+        background-color: #121212;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+
+        /* On le cache en dehors de l'écran par défaut */
+        transform: translateY(-120%);
+        transition: transform 0.4s ease-in-out;
+    }
+
+    /* Quand le menu est ouvert, on le fait apparaître */
+    .main-nav.is-open ul {
+        transform: translateY(0);
+    }
+
+    .main-nav a {
+        font-size: 1.2rem;
+        padding: 15px 0;
+    }
+
+    /* On cache le menu horizontal */
+    .main-nav {
+        order: 3; /* Change l'ordre pour le flexbox */
+    }
+
+    /* On affiche le bouton hamburger */
+    .hamburger-menu {
+        display: block;
+        order: 2;
+    }
+
+    /* Animation du hamburger en croix (X) quand il est actif */
+    .hamburger-menu.is-active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger-menu.is-active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger-menu.is-active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+}
+/*
+ * ===================================================================
+ * 18. PAGE GUIDE DES MODS
+ * ===================================================================
+*/
+.workshop-cta {
+    text-align: center;
+    background-color: #1a1a1a;
+    padding: 40px;
+    margin: 40px 0 60px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.workshop-cta h2 {
+    margin-top: 0;
+}
+
+.btn-large {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 20px 0;
+}
+
+.small-text {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 10px;
+}
+
+.accordion-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accordion-header {
+    font-family: 'HitmarkerText', sans-serif;
+    background: none;
+    border: none;
+    color: #fff;
+    width: 100%;
+    text-align: left;
+    padding: 20px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+
+.accordion-header::after {
+    content: '+';
+    position: absolute;
+    right: 20px;
+    font-size: 2rem;
+    color: #00A8FF;
+    transition: transform 0.3s ease;
+}
+
+.accordion-header.active::after {
+    transform: rotate(45deg);
+}
+
+.accordion-item:hover .accordion-header {
+    background-color: #1f1f1f;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    background-color: #111;
+}
+
+.accordion-content ul {
+    padding: 20px 40px;
+    margin: 0;
+    list-style-type: square;
+}
+.accordion-content li {
+    margin-bottom: 10px;
+}
+.accordion-content p {
+    padding: 20px 40px 0 40px;
+    margin-top: 0;
+}
+/*
+ * ===================================================================
+ * 20. PAGE ANIMÉE "OPERATION GULFCOAST"
+ * ===================================================================
+*/
+.briefing-terminal {
+    background-color: #0c0c0c;
+    padding: 100px 0;
+    font-family: 'Courier New', Courier, monospace; /* Police de terminal */
+}
+
+.briefing-terminal pre {
+    margin: 0;
+    white-space: pre-wrap; /* Permet le retour à la ligne */
+    word-wrap: break-word;
+}
+
+.briefing-terminal code {
+    color: #00ff41; /* Vert phosphore */
+    font-size: 1.1rem;
+    line-height: 1.8;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* Le curseur qui clignote, géré par la librairie JS */
+.typed-cursor {
+    opacity: 1;
+    animation: blink 0.7s infinite;
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* --- Styles pour la liste des nouveautés --- */
+.asset-debrief {
+    padding-top: 60px;
+}
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin: 40px 0;
+}
+.faction-column h4 {
+    font-size: 1.5rem;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid;
+}
+.faction-column.nato h4 { border-color: #00A8FF; color: #00A8FF; }
+.faction-column.ussr h4 { border-color: #dc3545; color: #dc3545; }
+.faction-column ul { list-style: none; padding: 0; }
+.faction-column li {
+    background-color: #1f1f1f;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.gear-section {
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr; /* Une seule colonne sur mobile */
+    }
+}

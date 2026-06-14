@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Stats - Les Gaulois</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #1e1e2e; /* Fond sombre stylé */
+            color: #cdd6f4; 
+            padding: 40px; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: #313244; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { color: #f9e2af; text-align: center; border-bottom: 2px solid #45475a; padding-bottom: 10px; }
+        .killfeed { 
+            background-color: #181825; 
+            padding: 15px; 
+            border-radius: 8px; 
+            min-height: 200px; 
+            border: 1px solid #45475a;
+        }
+        .kill-entry { 
+            padding: 8px 0; 
+            border-bottom: 1px solid #313244; 
+            font-size: 16px;
+        }
+        .kill-entry:last-child { border-bottom: none; }
+        .time { color: #a6adc8; font-weight: bold; margin-right: 10px; }
+        .connexion-status { text-align: center; color: #a6e3a1; font-weight: bold; margin-bottom: 20px;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔴 EN DIRECT DU SERVEUR</h1>
+        <div class="connexion-status">Le site écoute le serveur en temps réel...</div>
+        
+        <h3>⚔️ Killfeed (Dernières actions)</h3>
+        <div id="killfeed" class="killfeed">
+            </div>
+    </div>
+
+    <script>
+        // Cette fonction va demander les stats au "Cerveau" Node.js
+        async function recupererStats() {
+            try {
+                // On tape sur notre API locale
+                const reponse = await fetch('http://localhost:3000/api/stats');
+                const data = await reponse.json();
+
+                // On cible la zone d'affichage
+                const zoneKillfeed = document.getElementById('killfeed');
+                zoneKillfeed.innerHTML = ''; // On vide l'ancien texte
+
+                // Si c'est vide
+                if (data.killfeed.length === 0) {
+                    zoneKillfeed.innerHTML = '<div class="kill-entry">Aucune action sur le serveur pour le moment...</div>';
+                } else {
+                    // Sinon, on affiche chaque message
+                    data.killfeed.forEach(action => {
+                        zoneKillfeed.innerHTML += `<div class="kill-entry"><span class="time">[${action.horaire}]</span> ${action.message}</div>`;
+                    });
+                }
+            } catch (erreur) {
+                document.getElementById('killfeed').innerHTML = '<div style="color:#f38ba8;">❌ Impossible de joindre l\'API. Vérifiez que Node.js tourne.</div>';
+            }
+        }
+
+        // On lance la fonction toutes les 2 secondes (2000 ms)
+        setInterval(recupererStats, 2000);
+        
+        // On la lance une première fois immédiatement au chargement de la page
+        recupererStats();
+    </script>
+
+</body>
+</html>

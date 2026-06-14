@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Centre de Commandement - Les Gaulois</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Leaflet.js Library for Tactical Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+        .player-map-label {
+            background-color: rgba(0, 0, 0, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 0.75rem;
+            padding: 1px 4px !important;
+            border-radius: 3px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        }
+        .leaflet-tooltip-top:before {
+            border-top-color: rgba(0,0,0,0.8) !important;
+        }
+        /* Styles spécifiques pour l'affichage tactique */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .panel-box {
+            background-color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 4px;
+        }
+        .panel-title {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .live-killfeed {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .kill-row {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 12px 15px;
+            border-left: 3px solid #00A8FF;
+            font-size: 1.05rem;
+        }
+        .faction-roster {
+            margin-bottom: 25px;
+        }
+        .faction-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .nato-title { color: #00A8FF; }
+        .ussr-title { color: #dc3545; }
+        .player-list-box {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            min-height: 100px;
+        }
+        .player-name-item {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-weight: 500;
+        }
+        .player-name-item:last-child { border-bottom: none; }
+
+        /* --- STYLES DU LEADERBOARD --- */
+        .leaderboard-section {
+            margin-top: 30px;
+            background-color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 4px;
+        }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 15px;
+        }
+        .leaderboard-table th {
+            padding: 12px 15px;
+            border-bottom: 2px solid #f1c40f;
+            color: #aaa;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .leaderboard-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 1.05rem;
+        }
+        .leaderboard-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* --- STYLES DES SOUS-ONGLETS ADMIN --- */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .admin-tab-link {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            padding: 10px 18px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .admin-tab-link:hover, .admin-tab-link.active {
+            background-color: #f1c40f;
+            color: #000;
+            border-color: #f1c40f;
+            font-weight: bold;
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+        .btn-table-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-left: 5px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-table-warn {
+            background-color: rgba(230, 126, 34, 0.2);
+            border: 1px solid #e67e22;
+            color: #e67e22;
+        }
+        .btn-table-warn:hover {
+            background-color: #e67e22;
+            color: white;
+        }
+        .btn-table-kick {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .btn-table-kick:hover {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Logo de la Communauté Arma Reforger">
+            </a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="stats.html">Centre Tactique</a></li>
+                    <li><a href="reglement.html">Règlement</a></li>
+                    <li><a href="mods.html">Guide des Mods</a></li>
+                    <li><a href="index.html#actualites">Actualités</a></li>
+                    <li><a href="equipe.html">L'Équipe</a></li>
+                </ul>
+            </nav>
+            <button class="hamburger-menu" aria-label="Ouvrir le menu">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <header class="article-header" style="background-image: url('assets/poster-image.jpg');">
+            <div class="video-overlay"></div>
+            <div class="container">
+                <h1>CENTRE DE COMMANDEMENT</h1>
+                <p class="article-subtitle">Suivi tactique des opérations et des effectifs en temps réel.</p>
+            </div>
+        </header>
+
+        <section class="content-section">
+            <div class="container">
+                
+                <div class="rules-tabs" style="margin-bottom: 40px;">
+                    <button class="tab-link active" data-tab="tab-leaderboard">🏆 Classement Général</button>
+                    <button class="tab-link" data-tab="tab-admin-portal">🛡️ Espace Administrateur</button>
+                </div>
+
+                <!-- 1. ONGLET PUBLIC : CLASSEMENT -->
+                <div id="tab-leaderboard" class="rules-content active">
+                    <div class="leaderboard-section" style="margin-top: 0;">
+                        <h3 class="panel-title" style="color: #f1c40f; border-bottom-color: rgba(241, 196, 15, 0.3);">🏆 CLASSEMENT GÉNÉRAL DES GAULOIS</h3>
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Opérateur</th>
+                                    <th style="color: #f1c40f;">Temps de jeu 🕒</th>
+                                    <th style="color: #2ecc71;">Kills 🔫</th>
+                                    <th style="color: #e74c3c;">Morts 💀</th>
+                                    <th style="color: #3498db;">Ratio K/D 📊</th>
+                                    <th style="color: #f39c12;">Captures 🚩</th>
+                                    <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement des données satellites...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. ONGLET PRIVE : ESPACE ADMIN -->
+                <div id="tab-admin-portal" class="rules-content">
+                    
+                    <!-- Formulaire d'authentification Admin -->
+                    <div id="map-auth-container" class="panel-box" style="text-align: center; padding: 40px 20px;">
+                        <h3 class="panel-title" style="color: #e74c3c; border-bottom-color: rgba(231, 76, 60, 0.3);">🛡️ ACCÈS SÉCURISÉ COMMANDEMENT</h3>
+                        <p style="margin-bottom: 20px; color: #aaa;">Veuillez entrer le mot de passe administrateur pour accéder à la liaison satellite et aux fonctions RCON.</p>
+                        <div style="display: inline-flex; gap: 10px; max-width: 400px; width: 100%; justify-content: center;">
+                            <input type="password" id="map-password" placeholder="Mot de passe..." style="flex: 1; max-width: 250px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family: inherit;">
+                            <button id="btn-auth-map" style="padding: 12px 24px; background: #f1c40f; color: black; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit;">Accéder</button>
+                        </div>
+                        <p id="auth-error-msg" style="color: #e74c3c; margin-top: 15px; display: none; font-weight: bold;">Mot de passe incorrect.</p>
+                    </div>
+
+                    <!-- Panel Admin complet (Masqué par défaut) -->
+                    <div id="map-live-container" style="display: none;">
+                        
+                        <!-- Barre de statut & Déconnexion -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: rgba(0,0,0,0.3); padding: 12px 20px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="color: #aaa; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #2ecc71; box-shadow: 0 0 8px #2ecc71; animation: pulse 2s infinite;"></span>
+                                <span style="color: #fff; font-weight: bold;">PANEL ADMIN CONNECTÉ</span> | Suivi tactique activé (2s)
+                            </div>
+                            <button id="btn-logout-map" style="padding: 8px 16px; background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-weight: bold; font-family: inherit;">Déconnexion</button>
+                        </div>
+
+                        <!-- Sous-onglets Admin -->
+                        <div class="admin-tabs">
+                            <button class="admin-tab-link active" data-admin-tab="admin-livemap">🗺️ Livemap & RCON</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-logs">📋 Journal de Combat</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-analysis">🔍 Analyses Opérateurs</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-gestion">⚙️ Gestion Session</button>
+                        </div>
+
+                        <!-- SOUS-ONGLET 1: LIVEMAP & RCON -->
+                        <div id="admin-livemap" class="admin-tab-content active">
+                            <div class="panel-box" style="margin-bottom: 20px;">
+                                <h3 class="panel-title">🗺️ CARTE TACTIQUE D'EVERON</h3>
+                                <div id="tactical-map" style="height: 600px; background-color: #0b0b0b; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; position: relative; overflow: hidden; z-index: 1;"></div>
+                                
+                                <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #3498db; border: 2px solid white;"></span> US Forces (Bleu)
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #e74c3c; border: 2px solid white;"></span> USSR Forces (Rouge)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel-box">
+                                <h3 class="panel-title" style="color: #f1c40f; border-bottom-color: rgba(241, 196, 15, 0.2);">🎙️ CONSOLE DE COMMANDEMENT RCON</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Annonce Radio Globale</h5>
+                                        <div style="display: flex; gap: 10px;">
+                                            <input type="text" id="rcon-announce-msg" placeholder="Message à tous les joueurs..." style="flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit;">
+                                            <button id="btn-rcon-announce" style="padding: 10px 20px; background: #3498db; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Diffuser</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Action Ciblée sur Opérateur</h5>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <select id="rcon-player-select" style="flex: 1; min-width: 150px; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit;">
+                                                <option value="">Sélectionnez un joueur...</option>
+                                            </select>
+                                            <button id="btn-rcon-warn" style="padding: 10px 15px; background: #e67e22; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Avertir</button>
+                                            <button id="btn-rcon-kick" style="padding: 10px 15px; background: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Kick</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p id="rcon-status-msg" style="margin-top: 15px; margin-bottom: 0; font-size: 0.85rem; color: #2ecc71; display: none; font-weight: bold;"></p>
+                            </div>
+                        </div>
+
+                        <!-- SOUS-ONGLET 2: JOURNAL DE COMBAT & CHAT -->
+                        <div id="admin-logs" class="admin-tab-content">
+                            <div class="dashboard-grid" style="margin-top: 0;">
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <div class="panel-box">
+                                        <h3 class="panel-title">⚔️ Communications Radio (Live Feed)</h3>
+                                        <div id="live-killfeed" class="live-killfeed">
+                                            <div style="color: rgba(255,255,255,0.4); text-align:center; font-style:italic; margin-top:40px;">En attente de rapports de combat...</div>
+                                        </div>
+                                    </div>
+                                    <div class="panel-box">
+                                        <h3 class="panel-title">💬 Flux Chat en Jeu (Temps Réel)</h3>
+                                        <div id="live-chat" style="min-height: 300px; max-height: 400px; display: flex; flex-direction: column; gap: 8px; background-color: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); overflow-y: auto;">
+                                            <div style="color: rgba(255,255,255,0.4); text-align:center; font-style:italic; margin-top:40px;">Aucun message reçu pour le moment...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel-box">
+                                    <h3 class="panel-title">🪖 Effectifs sur Zone</h3>
+                                    <div class="faction-roster">
+                                        <div class="faction-name nato-title">
+                                            <span>BLOC OTAN</span>
+                                            <span id="count-us">0</span>
+                                        </div>
+                                        <div id="list-us" class="player-list-box">
+                                            <div style="color:rgba(255,255,255,0.3); font-style:italic; font-size:0.9rem;">Aucun opérateur</div>
+                                        </div>
+                                    </div>
+                                    <div class="faction-roster">
+                                        <div class="faction-name ussr-title">
+                                            <span>FORCES ARMÉES URSS</span>
+                                            <span id="count-urss">0</span>
+                                        </div>
+                                        <div id="list-urss" class="player-list-box">
+                                            <div style="color:rgba(255,255,255,0.3); font-style:italic; font-size:0.9rem;">Aucun opérateur</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SOUS-ONGLET 3: ANALYSES OPÉRATEURS -->
+                        <div id="admin-analysis" class="admin-tab-content">
+                            <div class="panel-box">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                                    <h3 class="panel-title" style="margin: 0; border: none; padding: 0;">🔍 Analyse et Base de Données Joueurs</h3>
+                                    <input type="text" id="admin-search-player" placeholder="Rechercher un opérateur..." style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; width: 250px; font-family: inherit;">
+                                </div>
+                                <div style="overflow-x: auto;">
+                                    <table class="leaderboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Opérateur</th>
+                                                <th>Temps de jeu 🕒</th>
+                                                <th style="color: #2ecc71;">Kills 🔫</th>
+                                                <th style="color: #e74c3c;">Morts 💀</th>
+                                                <th style="color: #3498db;">Ratio 📊</th>
+                                                <th style="color: #f39c12;">Teamkills ⚠️</th>
+                                                <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                                <th style="text-align: right;">Modération</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-analysis-body">
+                                            <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement des données satellites...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SOUS-ONGLET 4: GESTION & CONSOLE TECH -->
+                        <div id="admin-gestion" class="admin-tab-content">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="panel-box">
+                                    <h3 class="panel-title">⚙️ État du Système</h3>
+                                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                            <span style="color: #aaa;">Statut Liaison :</span>
+                                            <span id="admin-system-status" style="font-weight: bold;">Hors-ligne</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                            <span style="color: #aaa;">Opérateurs Connectés :</span>
+                                            <span id="admin-system-players" style="font-weight: bold;">0</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                            <span style="color: #aaa;">Dernier Battement :</span>
+                                            <span id="admin-system-heartbeat" style="font-weight: bold;">Aucun</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                            <span style="color: #aaa;">Carte Active :</span>
+                                            <span id="admin-system-map" style="font-weight: bold;">Inconnue</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                            <span style="color: #aaa;">Taille Grille :</span>
+                                            <span id="admin-system-map-size" style="font-weight: bold;">0m</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel-box">
+                                    <h3 class="panel-title">🛠️ Diagnostics & Diagnostic Réseau</h3>
+                                    <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 20px;">Vérifiez la connexion avec le serveur de commandement et effectuez des diagnostics.</p>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <button id="btn-admin-ping-api" style="padding: 10px 20px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Tester API (Ping)</button>
+                                        <button id="btn-admin-reload" style="padding: 10px 20px; background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; color: #f1c40f; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Recharger de force</button>
+                                    </div>
+                                    <p id="admin-diagnostic-log" style="margin-top: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); color: #888; min-height: 40px; word-break: break-all; margin-bottom: 0;">En attente de test de diagnostic...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container footer-content">
+            <div class="footer-logo"><img src="assets/logo.png" alt="Logo Les Gaulois"></div>
+            <div class="footer-nav">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="stats.html">Centre Tactique</a></li>
+                    <li><a href="reglement.html">Règlement</a></li>
+                    <li><a href="equipe.html">L'Équipe</a></li>
+                </ul>
+            </div>
+            <div class="footer-social">
+                <h4>Rejoignez-nous</h4>
+                <a href="https://discord.gg/lesgaulois" target="_blank" class="social-link">Discord</a>
+            </div>
+        </div>
+        <div class="footer-copyright"><p>© 2025 Les Gaulois. Tous droits réservés.</p></div>
+    </footer>
+
+    <script src="scripts/main.js" defer></script>
+
+    <script>
+        // Variables Livemap
+        let map = null;
+        let playerLayerGroup = null;
+        let baseLayerGroup = null;
+        let isMapInitialized = false;
+        let currentMapName = "";
+        let currentMapSize = 0;
+        let mapOverlay = null;
+        let lastMapName = "Eden";
+        let lastMapSize = 12800;
+
+        const mapAuthContainer = document.getElementById('map-auth-container');
+        const mapLiveContainer = document.getElementById('map-live-container');
+        const btnAuthMap = document.getElementById('btn-auth-map');
+        const btnLogoutMap = document.getElementById('btn-logout-map');
+        const mapPasswordInput = document.getElementById('map-password');
+        const authErrorMsg = document.getElementById('auth-error-msg');
+
+        function checkMapAuth(mapName, mapSize) {
+            if (sessionStorage.getItem('admin_logged') === 'true') {
+                mapAuthContainer.style.display = 'none';
+                mapLiveContainer.style.display = 'block';
+                initTacticalMap(mapName, mapSize);
+            } else {
+                mapAuthContainer.style.display = 'block';
+                mapLiveContainer.style.display = 'none';
+            }
+        }
+
+        btnAuthMap.addEventListener('click', () => {
+            if (mapPasswordInput.value === 'admin') {
+                sessionStorage.setItem('admin_logged', 'true');
+                authErrorMsg.style.display = 'none';
+                mapPasswordInput.value = '';
+                checkMapAuth(lastMapName, lastMapSize);
+            } else {
+                authErrorMsg.style.display = 'block';
+            }
+        });
+
+        mapPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                btnAuthMap.click();
+            }
+        });
+
+        btnLogoutMap.addEventListener('click', () => {
+            sessionStorage.removeItem('admin_logged');
+            checkMapAuth();
+        });
+
+        function initTacticalMap(mapName, mapSize) {
+            mapName = mapName || "Eden";
+            mapSize = parseFloat(mapSize) || 12800;
+
+            if (isMapInitialized) {
+                if (currentMapName !== mapName || currentMapSize !== mapSize) {
+                    currentMapName = mapName;
+                    currentMapSize = mapSize;
+                    const newBounds = [[0, 0], [mapSize, mapSize]];
+                    
+                    map.setMaxBounds(newBounds);
+                    map.fitBounds(newBounds);
+                    
+                    if (mapOverlay) {
+                        map.removeLayer(mapOverlay);
+                    }
+                    
+                    mapOverlay = L.imageOverlay(`assets/maps/${mapName.toLowerCase()}.png`, newBounds).addTo(map);
+                    mapOverlay.on('error', () => {
+                        console.log(`Image de carte pour ${mapName} non trouvée. Utilisation du fallback map.png.`);
+                        mapOverlay = L.imageOverlay('assets/map.png', newBounds).addTo(map);
+                        mapOverlay.on('error', () => {
+                            console.log("Aucun fichier d'image trouvé.");
+                        });
+                    });
+                } else if (map) {
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 100);
+                }
+                return;
+            }
+
+            currentMapName = mapName;
+            currentMapSize = mapSize;
+            const mapBounds = [[0, 0], [mapSize, mapSize]];
+
+            map = L.map('tactical-map', {
+                crs: L.CRS.Simple,
+                minZoom: -3,
+                maxZoom: 3,
+                maxBounds: mapBounds,
+                maxBoundsViscosity: 1.0
+            });
+
+            map.fitBounds(mapBounds);
+
+            mapOverlay = L.imageOverlay(`assets/maps/${mapName.toLowerCase()}.png`, mapBounds).addTo(map);
+            mapOverlay.on('error', () => {
+                console.log(`Image de carte pour ${mapName} non trouvée. Remplacement par le fallback map.png.`);
+                map.removeLayer(mapOverlay);
+                mapOverlay = L.imageOverlay('assets/map.png', mapBounds).addTo(map);
+                mapOverlay.on('error', () => {
+                    console.log("Aucun fichier d'image trouvé.");
+                });
+            });
+
+            playerLayerGroup = L.layerGroup().addTo(map);
+            baseLayerGroup = L.layerGroup().addTo(map);
+            isMapInitialized = true;
+        }
+
+        function updateTacticalMap(players, bases) {
+            if (!isMapInitialized || !map) return;
+
+            playerLayerGroup.clearLayers();
+            baseLayerGroup.clearLayers();
+
+            if (bases && Array.isArray(bases)) {
+                bases.forEach(base => {
+                    const lat = parseFloat(base.y);
+                    const lng = parseFloat(base.x);
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    let flagEmoji = "🏳️";
+                    if (base.faction === "US") flagEmoji = "🇺🇸";
+                    else if (base.faction === "USSR") flagEmoji = "🇷🇺";
+
+                    const baseIcon = L.divIcon({
+                        html: `<div style="font-size: 20px; text-align: center; text-shadow: 0px 0px 4px black; filter: drop-shadow(0 0 2px rgba(255,255,255,0.4));">${flagEmoji}</div>`,
+                        className: 'base-map-icon',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    const marker = L.marker([lat, lng], { icon: baseIcon });
+                    marker.bindTooltip(`<b>${base.name}</b><br>Contrôle : ${base.faction}`, {
+                        permanent: false,
+                        direction: 'top'
+                    });
+                    baseLayerGroup.addLayer(marker);
+                });
+            }
+
+            if (players && Array.isArray(players)) {
+                players.forEach(player => {
+                    const lat = parseFloat(player.y);
+                    const lng = parseFloat(player.x);
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    let color = '#3498db';
+                    if (player.faction === "USSR") color = '#e74c3c';
+                    if (player.inVehicle) color = '#9b59b6';
+
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    });
+
+                    let tooltipText = `<b>${player.name}</b> (${player.faction})`;
+                    if (player.inVehicle) {
+                        tooltipText += `<br>🚗 À bord : <i>${player.vehicleType || 'Véhicule'}</i>`;
+                    }
+
+                    marker.bindTooltip(tooltipText, {
+                        permanent: true,
+                        direction: 'top',
+                        className: 'player-map-label',
+                        offset: [0, -6]
+                    });
+
+                    playerLayerGroup.addLayer(marker);
+                });
+            }
+        }
+
+        // Formater le temps de jeu en secondes -> human readable (ex: 3h 45m ou 15m)
+        function formaterTempsJeu(secondes) {
+            if (!secondes) return "0m";
+            const h = Math.floor(secondes / 3600);
+            const m = Math.floor((secondes % 3600) / 60);
+            if (h > 0) {
+                return `${h}h ${m}m`;
+            }
+            return `${m}m`;
+        }
+
+        // Gestion des Onglets Principaux
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.rules-content');
+
+        tabLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                tabLinks.forEach(l => l.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                link.classList.add('active');
+                const targetTab = link.getAttribute('data-tab');
+                document.getElementById(targetTab).classList.add('active');
+
+                if (targetTab === 'tab-admin-portal') {
+                    checkMapAuth(lastMapName, lastMapSize);
+                }
+            });
+        });
+
+        // Gestion des Sous-onglets Admin
+        const adminTabLinks = document.querySelectorAll('.admin-tab-link');
+        const adminTabContents = document.querySelectorAll('.admin-tab-content');
+
+        adminTabLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                adminTabLinks.forEach(l => l.classList.remove('active'));
+                adminTabContents.forEach(c => c.classList.remove('active'));
+
+                link.classList.add('active');
+                const targetAdminTab = link.getAttribute('data-admin-tab');
+                document.getElementById(targetAdminTab).classList.add('active');
+
+                if (targetAdminTab === 'admin-livemap') {
+                    if (map) {
+                        setTimeout(() => {
+                            map.invalidateSize();
+                        }, 100);
+                    }
+                }
+            });
+        });
+
+        // Actualisation des données
+        async function actualiserDashboard() {
+            try {
+                const reponse = await fetch('https://lgtracker-api.onrender.com/api/stats');
+                const dataRaw = await reponse.json();
+                
+                const serveur = dataRaw.server;
+                const classement = dataRaw.leaderboard;
+
+                // 1. MISE À JOUR DU LIVE FEED (Uniquement si connecté admin pour optimiser le rendu)
+                if (sessionStorage.getItem('admin_logged') === 'true') {
+                    const zoneKillfeed = document.getElementById('live-killfeed');
+                    if (zoneKillfeed) {
+                        zoneKillfeed.innerHTML = '';
+                        if (serveur.killfeed.length === 0) {
+                            zoneKillfeed.innerHTML = '<div style="color: rgba(255,255,255,0.4); text-align:center; font-style:italic; margin-top:40px;">Secteur calme. Aucun rapport tactique.</div>';
+                        } else {
+                            serveur.killfeed.forEach(item => {
+                                let colorBorder = '#00A8FF';
+                                if (item.message.includes('TEAMKILL')) colorBorder = '#f39c12';
+                                else if (item.message.includes('DÉTRUIT')) colorBorder = '#9b59b6';
+                                else if (item.message.includes('CAPTURE')) colorBorder = '#2ecc71';
+                                else if (item.message.includes('arrêté')) colorBorder = '#e74c3c';
+
+                                zoneKillfeed.innerHTML += `
+                                    <div class="kill-row" style="border-left-color: ${colorBorder};">
+                                        <span style="color: rgba(255,255,255,0.4); font-weight: bold; margin-right: 10px;">[${item.horaire}]</span>
+                                        ${item.message}
+                                    </div>`;
+                            });
+                        }
+                    }
+
+                    // 2. MISE À JOUR DE LA LISTE US
+                    const zoneUs = document.getElementById('list-us');
+                    if (zoneUs) {
+                        document.getElementById('count-us').innerText = serveur.equipes.US.length;
+                        zoneUs.innerHTML = '';
+                        if (serveur.equipes.US.length === 0) {
+                            zoneUs.innerHTML = '<div style="color:rgba(255,255,255,0.3); font-style:italic; font-size:0.9rem;">Aucun opérateur</div>';
+                        } else {
+                            serveur.equipes.US.forEach(p => {
+                                zoneUs.innerHTML += `<div class="player-name-item">🔵 ${p}</div>`;
+                            });
+                        }
+                    }
+
+                    // 3. MISE À JOUR DE LA LISTE URSS
+                    const zoneUrss = document.getElementById('list-urss');
+                    if (zoneUrss) {
+                        document.getElementById('count-urss').innerText = serveur.equipes.URSS.length;
+                        zoneUrss.innerHTML = '';
+                        if (serveur.equipes.URSS.length === 0) {
+                            zoneUrss.innerHTML = '<div style="color:rgba(255,255,255,0.3); font-style:italic; font-size:0.9rem;">Aucun opérateur</div>';
+                        } else {
+                            serveur.equipes.URSS.forEach(p => {
+                                zoneUrss.innerHTML += `<div class="player-name-item">🔴 ${p}</div>`;
+                            });
+                        }
+                    }
+
+                    // 4. MISE À JOUR DU CHAT EN DIRECT
+                    const zoneChat = document.getElementById('live-chat');
+                    if (zoneChat) {
+                        zoneChat.innerHTML = '';
+                        if (!serveur.chatfeed || serveur.chatfeed.length === 0) {
+                            zoneChat.innerHTML = '<div style="color: rgba(255,255,255,0.4); text-align:center; font-style:italic; margin-top:40px;">Aucun message intercepté. Le canal de discussion est calme.</div>';
+                        } else {
+                            serveur.chatfeed.forEach(item => {
+                                let factionEmoji = "👥";
+                                if (item.faction === "US") factionEmoji = "🇺🇸";
+                                else if (item.faction === "USSR") factionEmoji = "☭";
+                                else if (item.faction === "FIA") factionEmoji = "🔰";
+                                
+                                let factionColor = "#bbb";
+                                if (item.faction === "US") factionColor = "#00A8FF";
+                                else if (item.faction === "USSR") factionColor = "#e74c3c";
+                                else if (item.faction === "FIA") factionColor = "#2ecc71";
+
+                                zoneChat.innerHTML += `
+                                    <div style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size:1rem; line-height:1.4; text-align: left;">
+                                        <span style="color: rgba(255,255,255,0.3); font-size: 0.9rem; font-weight: bold; margin-right: 8px;">[${item.horaire}]</span>
+                                        <span style="background-color: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.8rem; font-weight:bold; color: #f1c40f; margin-right: 8px;">${item.channel}</span>
+                                        <span style="font-weight: bold; color: ${factionColor};">${factionEmoji} ${item.player}</span> : 
+                                        <span style="color: #fff; margin-left: 5px;">${item.message}</span>
+                                    </div>`;
+                            });
+                        }
+                    }
+                }
+
+                // 5. MISE À JOUR DU LEADERBOARD PUBLIC
+                const zoneLeaderboard = document.getElementById('leaderboard-body');
+                zoneLeaderboard.innerHTML = '';
+                
+                const joueursTries = Object.keys(classement).map(nom => {
+                    return { nom: nom, ...classement[nom] };
+                }).sort((a, b) => b.kills - a.kills);
+
+                if (joueursTries.length === 0) {
+                    zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune donnée de combat enregistrée.</td></tr>';
+                } else {
+                    joueursTries.forEach((joueur, index) => {
+                        const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
+                        const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                        const couronne = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `<span style="color:#777;">#${index + 1}</span> `;
+
+                        zoneLeaderboard.innerHTML += `
+                            <tr>
+                                <td style="font-weight: bold;">${couronne}</td>
+                                <td style="font-weight: bold; color: white;">${joueur.nom}</td>
+                                <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
+                                <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
+                                <td style="color: #e74c3c;">${joueur.morts}</td>
+                                <td style="color: #3498db; font-weight: bold;">${ratio}</td>
+                                <td style="color: #f39c12; font-weight: bold;">${joueur.captures || 0}</td>
+                                <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed || 0}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN
+                if (sessionStorage.getItem('admin_logged') === 'true') {
+                    const zoneAnalysis = document.getElementById('admin-analysis-body');
+                    const filterInput = document.getElementById('admin-search-player');
+                    const filterText = filterInput ? filterInput.value.toLowerCase().trim() : "";
+                    
+                    if (zoneAnalysis) {
+                        zoneAnalysis.innerHTML = '';
+                        
+                        let filteredJoueurs = joueursTries;
+                        if (filterText) {
+                            filteredJoueurs = joueursTries.filter(j => j.nom.toLowerCase().includes(filterText));
+                        }
+                        
+                        if (filteredJoueurs.length === 0) {
+                            zoneAnalysis.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucun opérateur correspondant.</td></tr>';
+                        } else {
+                            filteredJoueurs.forEach(joueur => {
+                                const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
+                                const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                                
+                                let tkStyle = "color: #f39c12; font-weight: bold;";
+                                if (joueur.teamkills >= 3) {
+                                    tkStyle = "color: #e74c3c; font-weight: bold; text-shadow: 0 0 5px rgba(231,76,60,0.5);";
+                                }
+                                
+                                zoneAnalysis.innerHTML += `
+                                    <tr>
+                                        <td style="font-weight: bold; color: white;">${joueur.nom}</td>
+                                        <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
+                                        <td style="color: #2ecc71;">${joueur.kills}</td>
+                                        <td style="color: #e74c3c;">${joueur.morts}</td>
+                                        <td style="color: #3498db; font-weight: bold;">${ratio}</td>
+                                        <td style="${tkStyle}">${joueur.teamkills || 0}</td>
+                                        <td style="color: #9b59b6;">${joueur.vehicles_destroyed || 0}</td>
+                                        <td style="text-align: right;">
+                                            <button class="btn-table-action btn-table-warn" onclick="moderationAvertir('${joueur.nom}')">Avertir</button>
+                                            <button class="btn-table-action btn-table-kick" onclick="moderationKick('${joueur.nom}')">Kick</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    }
+
+                    // 6. MISE À JOUR DE LA LIVEMAP ADMIN
+                    if (serveur.map) {
+                        lastMapName = serveur.map.mapName || "Eden";
+                        lastMapSize = serveur.map.mapSize || 12800;
+
+                        if (isMapInitialized) {
+                            initTacticalMap(lastMapName, lastMapSize);
+                            updateTacticalMap(serveur.map.players, serveur.map.bases);
+                        }
+                    }
+
+                    // 7. MISE À JOUR DE LA CONSOLE TECH ADMIN
+                    document.getElementById('admin-system-status').innerText = serveur.status === "online" ? "🟢 En ligne" : "🔴 Hors-ligne";
+                    document.getElementById('admin-system-status').style.color = serveur.status === "online" ? "#2ecc71" : "#e74c3c";
+                    document.getElementById('admin-system-players').innerText = `${serveur.joueursCount} opérateur(s)`;
+                    
+                    const lastHeartbeatText = serveur.lastHeartbeat > 0 
+                        ? new Date(serveur.lastHeartbeat).toLocaleTimeString('fr-FR')
+                        : "Aucun battement";
+                    document.getElementById('admin-system-heartbeat').innerText = lastHeartbeatText;
+                    document.getElementById('admin-system-map').innerText = serveur.map ? (serveur.map.mapName || "Inconnue") : "Inconnue";
+                    document.getElementById('admin-system-map-size').innerText = serveur.map ? `${serveur.map.mapSize || 0}m` : "0m";
+
+                    updateAdminPlayerSelect(serveur.equipes.US, serveur.equipes.URSS);
+                }
+
+            } catch (err) {
+                console.error("Erreur de liaison API tactique.", err);
+            }
+        }
+
+        // --- SCRIPTS ET ÉVÉNEMENTS CONSOLE RCON & MODÉRATION ---
+        const rconStatusMsg = document.getElementById('rcon-status-msg');
+
+        function showRconStatus(message, isError = false) {
+            if (!rconStatusMsg) return;
+            rconStatusMsg.style.color = isError ? '#e74c3c' : '#2ecc71';
+            rconStatusMsg.textContent = message;
+            rconStatusMsg.style.display = 'block';
+            setTimeout(() => {
+                rconStatusMsg.style.display = 'none';
+            }, 4000);
+        }
+
+        function updateAdminPlayerSelect(playersUS, playersURSS) {
+            const select = document.getElementById('rcon-player-select');
+            if (!select) return;
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Sélectionnez un joueur...</option>';
+            
+            const allPlayers = [...playersUS, ...playersURSS].sort();
+            allPlayers.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                if (p === currentValue) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        }
+
+        async function sendRconCommand(payload) {
+            try {
+                const response = await fetch('https://lgtracker-api.onrender.com/api/admin/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: 'admin',
+                        ...payload
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showRconStatus(`✅ Commande enregistrée : ${data.command}`);
+                } else {
+                    showRconStatus(`❌ Erreur : ${data.error}`, true);
+                }
+            } catch (err) {
+                showRconStatus(`❌ Impossible de contacter l'API RCON`, true);
+            }
+        }
+
+        // Fonctions d'avertissement et kick globales accessibles depuis la table
+        window.moderationAvertir = function(playerName) {
+            const msg = prompt(`Raison de l'avertissement pour ${playerName} :`);
+            if (msg === null) return;
+            sendRconCommand({ action: 'warn', target: playerName, message: msg.trim() || 'Avertissement de la modération' });
+        };
+
+        window.moderationKick = function(playerName) {
+            if (confirm(`Expulser le joueur ${playerName} ?`)) {
+                sendRconCommand({ action: 'kick', target: playerName });
+            }
+        };
+
+        document.getElementById('btn-rcon-announce').addEventListener('click', () => {
+            const input = document.getElementById('rcon-announce-msg');
+            const msg = input.value.trim();
+            if (!msg) return showRconStatus("⚠️ Message vide !", true);
+            
+            sendRconCommand({ action: 'announce', message: msg });
+            input.value = '';
+        });
+
+        document.getElementById('btn-rcon-kick').addEventListener('click', () => {
+            const select = document.getElementById('rcon-player-select');
+            const target = select.value;
+            if (!target) return showRconStatus("⚠️ Aucun joueur sélectionné !", true);
+
+            moderationKick(target);
+        });
+
+        document.getElementById('btn-rcon-warn').addEventListener('click', () => {
+            const select = document.getElementById('rcon-player-select');
+            const target = select.value;
+            if (!target) return showRconStatus("⚠️ Aucun joueur sélectionné !", true);
+
+            moderationAvertir(target);
+        });
+
+        // Filtrage en direct de la liste de recherche admin
+        document.getElementById('admin-search-player').addEventListener('input', () => {
+            actualiserDashboard();
+        });
+
+        // Événements d'outils de diagnostics
+        document.getElementById('btn-admin-ping-api').addEventListener('click', async () => {
+            const diagLog = document.getElementById('admin-diagnostic-log');
+            diagLog.textContent = "Lancement du ping...";
+            diagLog.style.color = "#aaa";
+            try {
+                const start = Date.now();
+                const res = await fetch('https://lgtracker-api.onrender.com/api/stats');
+                const duration = Date.now() - start;
+                if (res.ok) {
+                    diagLog.textContent = `[SUCCESS] Liaison opérationnelle avec l'API. Latence: ${duration}ms.`;
+                    diagLog.style.color = "#2ecc71";
+                } else {
+                    diagLog.textContent = `[ERROR] HTTP ${res.status} de l'API.`;
+                    diagLog.style.color = "#e74c3c";
+                }
+            } catch (err) {
+                diagLog.textContent = `[CRITICAL] Impossible de contacter l'API: ${err.message}`;
+                diagLog.style.color = "#e74c3c";
+            }
+        });
+
+        document.getElementById('btn-admin-reload').addEventListener('click', () => {
+            const diagLog = document.getElementById('admin-diagnostic-log');
+            diagLog.textContent = "Force rechargement des données...";
+            actualiserDashboard();
+            diagLog.textContent += " Terminé.";
+            diagLog.style.color = "#f1c40f";
+        });
+
+        setInterval(actualiserDashboard, 2000);
+        actualiserDashboard();
+    </script>
+</body>
+</html>

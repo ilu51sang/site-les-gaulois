@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Les Gaulois</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="home">
+
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Logo de la Communauté Arma Reforger">
+            </a>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="stats.html">Centre Tactique</a></li>
+                    <li><a href="reglement.html">Règlement</a></li>
+                    <li><a href="mods.html">Guide des Mods</a></li>
+                    <li><a href="index.html#actualites">Actualités</a></li>
+                    <li><a href="equipe.html">L'Équipe</a></li>
+                </ul>
+            </nav>
+
+            <button class="hamburger-menu" aria-label="Ouvrir le menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <section class="hero-section">
+        <video autoplay loop muted playsinline poster="assets/poster-image.jpg">
+            <source src="assets/background-video.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas les vidéos.
+        </video>
+
+        <div class="video-overlay"></div>
+
+        <div class="hero-content">
+            <h1>REJOIGNEZ LE COMBAT</h1>
+            <p class="text-medium">L'expérience Arma Reforger ultime sur nos serveurs.</p>
+            
+            <div class="server-status-container">
+                <div class="server-status-box" style="width: 100%; max-width: 350px; margin: 0 auto; text-align: center;">
+                    <div class="status-header" style="justify-content: center; border-bottom: none; margin-bottom: 5px;">
+                        <span id="server-dot" class="status-dot offline"></span>
+                        <h3 id="server-text" style="margin-left: 10px;">EN ATTENTE...</h3>
+                    </div>
+                    <div class="player-count">
+                        <span id="online-players" style="color: #00A8FF;">-</span>
+                        <span style="font-size: 1.2rem; color: rgba(255,255,255,0.5);"> JOUEURS</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="https://discord.gg/lesgaulois" target="_blank" class="btn btn-primary">Rejoindre le Discord</a>
+                <a href="reglement.html" class="btn btn-secondary">Consulter le Règlement</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="actualites" class="content-section alternate-bg">
+        <div class="container">
+            <h2>Actualités de la Communauté</h2>
+            
+            <div class="news-grid">
+                <article class="news-card">
+                    <div class="news-video-container">
+                        <video controls poster="assets/poster-gulfcoast.png">
+                            <source src="assets/trailergulf.mp4" type="video/mp4">
+                            Votre navigateur ne supporte pas la lecture de vidéos.
+                        </video>
+                    </div>
+                    <div class="news-content">
+                        <p class="news-date">12 OCTOBRE 2025</p>
+                        <h3>OPERATION GULFCOAST : TRAILER OFFICIEL</h3>
+                        <p>Préparez-vous pour notre prochaine offensive majeure. L'Opération Gulfcoast vous plongera dans un nouveau théâtre d'opérations exigeant, avec un arsenal et des véhicules inédits.</p>
+                        <a href="operation-gulfcoast.html" class="btn btn-secondary news-btn">Lire le briefing complet</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <footer class="main-footer">
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <img src="assets/logo.png" alt="Logo Les Gaulois">
+            </div>
+            <div class="footer-nav">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="reglement.html">Règlement</a></li>
+                    <li><a href="equipe.html">L'Équipe</a></li>
+                </ul>
+            </div>
+            <div class="footer-social">
+                <h4>Rejoignez-nous</h4>
+                <a href="https://discord.gg/lesgaulois" target="_blank" class="social-link">Discord</a>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <p>© 2025 Les Gaulois. Développé avec le &hearts; par ilu. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/main.js" defer></script>
+
+    <script>
+        async function recupererStatsLive() {
+            try {
+                const reponse = await fetch('http://localhost:3000/api/stats');
+                const data = await reponse.json();
+
+                // On cible le sous-paquet "server"
+                const serveur = data.server;
+
+                const dot = document.getElementById('server-dot');
+                const texteServeur = document.getElementById('server-text');
+
+                if (serveur.status === "online") {
+                    dot.classList.remove('offline');
+                    dot.classList.add('online');
+                    texteServeur.innerText = "SERVEUR EN LIGNE";
+                    document.getElementById('online-players').innerText = serveur.joueursCount;
+                } else {
+                    dot.classList.remove('online');
+                    dot.classList.add('offline');
+                    texteServeur.innerText = "SERVEUR HORS LIGNE";
+                    document.getElementById('online-players').innerText = "-";
+                }
+                
+            } catch (erreur) {
+                const dot = document.getElementById('server-dot');
+                dot.classList.remove('online');
+                dot.classList.add('offline');
+                document.getElementById('server-text').innerText = "SERVEUR HORS LIGNE";
+                document.getElementById('online-players').innerText = "-";
+            }
+        }
+
+        setInterval(recupererStatsLive, 2000);
+        recupererStatsLive();
+    </script>
+
+</body>
+</html>
