@@ -51,7 +51,7 @@
         // Cette fonction va demander les stats au "Cerveau" Node.js
         async function recupererStats() {
             try {
-                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:'
                     ? 'http://localhost:3000'
                     : 'https://lgtracker-api.onrender.com';
                 const reponse = await fetch(`${API_URL}/api/stats`);
