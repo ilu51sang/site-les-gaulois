@@ -10,6 +10,7 @@
     <!-- Leaflet.js Library for Tactical Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         @keyframes pulse {
@@ -278,50 +279,61 @@
 
                         <!-- Sous-onglets Admin -->
                         <div class="admin-tabs">
-                            <button class="admin-tab-link active" data-admin-tab="admin-livemap">🗺️ Livemap & RCON</button>
+                            <button class="admin-tab-link active" data-admin-tab="admin-dashboard">📊 Tableau de bord</button>
                             <button class="admin-tab-link" data-admin-tab="admin-logs">📋 Journal de Combat</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-history-logs">📋 Historique des Logs</button>
                             <button class="admin-tab-link" data-admin-tab="admin-analysis">🔍 Analyses Opérateurs</button>
-                            <button class="admin-tab-link" data-admin-tab="admin-gestion">⚙️ Gestion Session</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-gestion">⚙️ Gestion Session & RCON</button>
                         </div>
 
-                        <!-- SOUS-ONGLET 1: LIVEMAP & RCON -->
-                        <div id="admin-livemap" class="admin-tab-content active">
-                            <div class="panel-box" style="margin-bottom: 20px;">
-                                <h3 class="panel-title">🗺️ CARTE TACTIQUE D'EVERON</h3>
-                                <div id="tactical-map" style="height: 600px; background-color: #0b0b0b; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; position: relative; overflow: hidden; z-index: 1;"></div>
-                                
-                                <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem; color: #aaa; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #3498db; border: 2px solid white;"></span> US Forces (Bleu)
+                        <!-- SOUS-ONGLET 1: TABLEAU DE BORD ANALYTIQUE -->
+                        <div id="admin-dashboard" class="admin-tab-content active">
+                            <!-- Cartes statistiques -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                                <div class="panel-box" style="display: flex; align-items: center; justify-content: space-between; padding: 20px; margin-bottom: 0;">
+                                    <div>
+                                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Opérateurs Connectés</div>
+                                        <div id="dash-active-players" style="font-size: 2rem; font-weight: bold; color: #fff;">0</div>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #e74c3c; border: 2px solid white;"></span> USSR Forces (Rouge)
+                                    <div style="font-size: 2.5rem; color: #3498db;">👥</div>
+                                </div>
+                                <div class="panel-box" style="display: flex; align-items: center; justify-content: space-between; padding: 20px; margin-bottom: 0;">
+                                    <div>
+                                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Répartition OTAN / URSS</div>
+                                        <div id="dash-factions-ratio" style="font-size: 1.3rem; font-weight: bold; color: #fff;">0 US / 0 URSS</div>
                                     </div>
+                                    <div style="font-size: 2.5rem;">🇺🇸/☭</div>
+                                </div>
+                                <div class="panel-box" style="display: flex; align-items: center; justify-content: space-between; padding: 20px; margin-bottom: 0;">
+                                    <div>
+                                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Statut Liaison</div>
+                                        <div id="dash-server-status" style="font-size: 1.4rem; font-weight: bold; color: #e74c3c;">Hors-ligne</div>
+                                    </div>
+                                    <div style="font-size: 2.5rem;">📡</div>
+                                </div>
+                                <div class="panel-box" style="display: flex; align-items: center; justify-content: space-between; padding: 20px; margin-bottom: 0;">
+                                    <div>
+                                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Total Opérateurs Enregistrés</div>
+                                        <div id="dash-total-registered" style="font-size: 2rem; font-weight: bold; color: #f1c40f;">0</div>
+                                    </div>
+                                    <div style="font-size: 2.5rem; color: #f1c40f;">🪖</div>
                                 </div>
                             </div>
 
-                            <div class="panel-box">
-                                <h3 class="panel-title" style="color: #f1c40f; border-bottom-color: rgba(241, 196, 15, 0.2);">🎙️ CONSOLE DE COMMANDEMENT RCON</h3>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                    <div>
-                                        <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Annonce Radio Globale</h5>
-                                        <div style="display: flex; gap: 10px;">
-                                            <input type="text" id="rcon-announce-msg" placeholder="Message à tous les joueurs..." style="flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit;">
-                                            <button id="btn-rcon-announce" style="padding: 10px 20px; background: #3498db; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Diffuser</button>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Action Ciblée sur Opérateur</h5>
-                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                            <select id="rcon-player-select" style="flex: 1; min-width: 150px; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit;">
-                                                <option value="">Sélectionnez un joueur...</option>
-                                            </select>
-                                            <button id="btn-rcon-warn" style="padding: 10px 15px; background: #e67e22; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Avertir</button>
-                                            <button id="btn-rcon-kick" style="padding: 10px 15px; background: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Kick</button>
-                                        </div>
+                            <!-- Graphiques analytiques -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                                <div class="panel-box">
+                                    <h3 class="panel-title">📈 Activité des Joueurs (Dernières 24h)</h3>
+                                    <div style="position: relative; height: 320px; width: 100%;">
+                                        <canvas id="chart-player-activity"></canvas>
                                     </div>
                                 </div>
-                                <p id="rcon-status-msg" style="margin-top: 15px; margin-bottom: 0; font-size: 0.85rem; color: #2ecc71; display: none; font-weight: bold;"></p>
+                                <div class="panel-box">
+                                    <h3 class="panel-title">📊 Top Opérateurs par Éliminations</h3>
+                                    <div style="position: relative; height: 320px; width: 100%;">
+                                        <canvas id="chart-top-players"></canvas>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -366,7 +378,53 @@
                             </div>
                         </div>
 
-                        <!-- SOUS-ONGLET 3: ANALYSES OPÉRATEURS -->
+                        <!-- SOUS-ONGLET 3: HISTORIQUE DES LOGS PERSISTANT -->
+                        <div id="admin-history-logs" class="admin-tab-content">
+                            <div class="panel-box">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                                    <h3 class="panel-title" style="margin: 0; border: none; padding: 0;">📋 Historique Complet des Logs</h3>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                        <select id="log-filter-type" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family: inherit;">
+                                            <option value="All">Tous les événements</option>
+                                            <option value="connexion">Connexions</option>
+                                            <option value="deconnexion">Déconnexions</option>
+                                            <option value="kill">Kills</option>
+                                            <option value="teamkill">Teamkills</option>
+                                            <option value="capture">Captures de Base</option>
+                                            <option value="vehicle_destroyed">Véhicules détruits</option>
+                                            <option value="chat">Chat</option>
+                                            <option value="online">Serveur En Ligne</option>
+                                            <option value="offline">Serveur Hors-Ligne</option>
+                                        </select>
+                                        <input type="text" id="log-search-input" placeholder="Rechercher un opérateur, détails..." style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; width: 220px; font-family: inherit;">
+                                        <select id="log-limit-select" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family: inherit;">
+                                            <option value="50">50 derniers</option>
+                                            <option value="100" selected>100 derniers</option>
+                                            <option value="200">200 derniers</option>
+                                            <option value="500">500 derniers</option>
+                                        </select>
+                                        <button id="btn-refresh-logs" style="padding: 10px 15px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold; transition: all 0.3s;">🔄 Actualiser</button>
+                                    </div>
+                                </div>
+                                <div style="overflow-x: auto; max-height: 550px; overflow-y: auto;">
+                                    <table class="leaderboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 180px;">Horaire 🕒</th>
+                                                <th style="width: 140px;">Type 🏷️</th>
+                                                <th style="width: 200px;">Opérateur 🪖</th>
+                                                <th>Détails de l'événement 📝</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-logs-history-body">
+                                            <tr><td colspan="4" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de l'historique des données...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SOUS-ONGLET 4: ANALYSES OPÉRATEURS -->
                         <div id="admin-analysis" class="admin-tab-content">
                             <div class="panel-box">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
@@ -395,42 +453,69 @@
                             </div>
                         </div>
 
-                        <!-- SOUS-ONGLET 4: GESTION & CONSOLE TECH -->
+                        <!-- SOUS-ONGLET 5: GESTION & CONSOLE RCON -->
                         <div id="admin-gestion" class="admin-tab-content">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div class="panel-box">
-                                    <h3 class="panel-title">⚙️ État du Système</h3>
-                                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                                            <span style="color: #aaa;">Statut Liaison :</span>
-                                            <span id="admin-system-status" style="font-weight: bold;">Hors-ligne</span>
+                            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start;">
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <div class="panel-box" style="margin-bottom: 0;">
+                                        <h3 class="panel-title">⚙️ État du Système</h3>
+                                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                                <span style="color: #aaa;">Statut Liaison :</span>
+                                                <span id="admin-system-status" style="font-weight: bold;">Hors-ligne</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                                <span style="color: #aaa;">Opérateurs Connectés :</span>
+                                                <span id="admin-system-players" style="font-weight: bold;">0</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                                <span style="color: #aaa;">Dernier Battement :</span>
+                                                <span id="admin-system-heartbeat" style="font-weight: bold;">Aucun</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                                <span style="color: #aaa;">Carte Active :</span>
+                                                <span id="admin-system-map" style="font-weight: bold;">Inconnue</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                                <span style="color: #aaa;">Taille Grille :</span>
+                                                <span id="admin-system-map-size" style="font-weight: bold;">0m</span>
+                                            </div>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                                            <span style="color: #aaa;">Opérateurs Connectés :</span>
-                                            <span id="admin-system-players" style="font-weight: bold;">0</span>
+                                    </div>
+                                    <div class="panel-box" style="margin-bottom: 0;">
+                                        <h3 class="panel-title">🛠️ Diagnostics Réseau</h3>
+                                        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px;">Vérifiez la liaison avec le serveur API et effectuez des diagnostics.</p>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <button id="btn-admin-ping-api" style="padding: 10px 20px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Tester API (Ping)</button>
+                                            <button id="btn-admin-reload" style="padding: 10px 20px; background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; color: #f1c40f; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Recharger</button>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                                            <span style="color: #aaa;">Dernier Battement :</span>
-                                            <span id="admin-system-heartbeat" style="font-weight: bold;">Aucun</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                                            <span style="color: #aaa;">Carte Active :</span>
-                                            <span id="admin-system-map" style="font-weight: bold;">Inconnue</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-                                            <span style="color: #aaa;">Taille Grille :</span>
-                                            <span id="admin-system-map-size" style="font-weight: bold;">0m</span>
-                                        </div>
+                                        <p id="admin-diagnostic-log" style="margin-top: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); color: #888; min-height: 40px; word-break: break-all; margin-bottom: 0;">En attente de test...</p>
                                     </div>
                                 </div>
-                                <div class="panel-box">
-                                    <h3 class="panel-title">🛠️ Diagnostics & Diagnostic Réseau</h3>
-                                    <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 20px;">Vérifiez la connexion avec le serveur de commandement et effectuez des diagnostics.</p>
-                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                        <button id="btn-admin-ping-api" style="padding: 10px 20px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Tester API (Ping)</button>
-                                        <button id="btn-admin-reload" style="padding: 10px 20px; background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; color: #f1c40f; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: bold;">Recharger de force</button>
+                                <div class="panel-box" style="margin-bottom: 0; min-height: 100%;">
+                                    <h3 class="panel-title" style="color: #f1c40f; border-bottom-color: rgba(241, 196, 15, 0.2);">🎙️ CONSOLE DE COMMANDEMENT RCON</h3>
+                                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                                        <div>
+                                            <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Annonce Radio Globale</h5>
+                                            <div style="display: flex; gap: 10px;">
+                                                <input type="text" id="rcon-announce-msg" placeholder="Message à tous les joueurs..." style="flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit;">
+                                                <button id="btn-rcon-announce" style="padding: 10px 20px; background: #3498db; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Diffuser</button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h5 style="margin-top: 0; margin-bottom: 8px; color: white; font-weight:600; font-size:0.95rem;">Action Ciblée sur Opérateur</h5>
+                                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                                <select id="rcon-player-select" style="padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; font-family:inherit; width: 100%;">
+                                                    <option value="">Sélectionnez un joueur...</option>
+                                                </select>
+                                                <div style="display: flex; gap: 10px;">
+                                                    <button id="btn-rcon-warn" style="flex: 1; padding: 10px; background: #e67e22; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Avertir</button>
+                                                    <button id="btn-rcon-kick" style="flex: 1; padding: 10px; background: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family:inherit;">Kick</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p id="admin-diagnostic-log" style="margin-top: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05); color: #888; min-height: 40px; word-break: break-all; margin-bottom: 0;">En attente de test de diagnostic...</p>
+                                    <p id="rcon-status-msg" style="margin-top: 20px; margin-bottom: 0; font-size: 0.85rem; color: #2ecc71; display: none; font-weight: bold;"></p>
                                 </div>
                             </div>
                         </div>
@@ -484,10 +569,22 @@
         const mapPasswordInput = document.getElementById('map-password');
         const authErrorMsg = document.getElementById('auth-error-msg');
 
+        // Variables Graphiques Dashboard Admin
+        let chartPlayerActivity = null;
+        let chartTopPlayers = null;
+        let dernierRefreshMetrics = 0;
+        let dernierRefreshLogsHist = 0;
+
         function checkMapAuth(mapName, mapSize) {
             if (sessionStorage.getItem('admin_logged') === 'true') {
                 mapAuthContainer.style.display = 'none';
                 mapLiveContainer.style.display = 'block';
+                
+                // Initialiser les graphiques et charger les données
+                initDashboardCharts();
+                actualiserMetricsDashboard();
+                actualiserLogsHistorique();
+                
                 initTacticalMap(mapName, mapSize);
             } else {
                 mapAuthContainer.style.display = 'block';
@@ -518,6 +615,7 @@
         });
 
         function initTacticalMap(mapName, mapSize) {
+            if (!document.getElementById('tactical-map')) return;
             mapName = mapName || "Eden";
             mapSize = parseFloat(mapSize) || 12800;
 
@@ -580,6 +678,7 @@
         }
 
         function updateTacticalMap(players, bases) {
+            if (!document.getElementById('tactical-map')) return;
             if (!isMapInitialized || !map) return;
 
             playerLayerGroup.clearLayers();
@@ -658,6 +757,205 @@
             return `${m}m`;
         }
 
+        // Initialisation des graphiques Chart.js du dashboard
+        function initDashboardCharts() {
+            const ctxActivity = document.getElementById('chart-player-activity');
+            if (ctxActivity && !chartPlayerActivity) {
+                chartPlayerActivity = new Chart(ctxActivity, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Total Connectés',
+                                data: [],
+                                borderColor: '#f1c40f',
+                                backgroundColor: 'rgba(241, 196, 15, 0.05)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'OTAN (US)',
+                                data: [],
+                                borderColor: '#3498db',
+                                backgroundColor: 'transparent',
+                                borderWidth: 1.5,
+                                fill: false,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'URSS',
+                                data: [],
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'transparent',
+                                borderWidth: 1.5,
+                                fill: false,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#aaa', font: { family: 'inherit' } }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#888' }
+                            },
+                            y: {
+                                min: 0,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#888', stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const ctxTop = document.getElementById('chart-top-players');
+            if (ctxTop && !chartTopPlayers) {
+                chartTopPlayers = new Chart(ctxTop, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Éliminations',
+                            data: [],
+                            backgroundColor: 'rgba(46, 204, 113, 0.6)',
+                            borderColor: '#2ecc71',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                min: 0,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#888', stepSize: 1 }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: '#fff', font: { weight: 'bold' } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Récupération et affichage de l'activité du serveur (24h)
+        async function actualiserMetricsDashboard() {
+            if (sessionStorage.getItem('admin_logged') !== 'true') return;
+            try {
+                const res = await fetch('https://lgtracker-api.onrender.com/api/admin/metrics?password=admin');
+                if (!res.ok) return;
+                const metrics = await res.json();
+                
+                if (chartPlayerActivity) {
+                    const labels = metrics.map(m => {
+                        const date = new Date(m.created_at);
+                        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    });
+                    const playerCounts = metrics.map(m => m.player_count);
+                    const usCounts = metrics.map(m => m.us_count);
+                    const ussrCounts = metrics.map(m => m.ussr_count);
+                    
+                    chartPlayerActivity.data.labels = labels;
+                    chartPlayerActivity.data.datasets[0].data = playerCounts;
+                    chartPlayerActivity.data.datasets[1].data = usCounts;
+                    chartPlayerActivity.data.datasets[2].data = ussrCounts;
+                    chartPlayerActivity.update();
+                }
+            } catch (err) {
+                console.error("Erreur actualisation métriques :", err);
+            }
+        }
+
+        // Récupération et affichage des logs de base de données
+        async function actualiserLogsHistorique() {
+            if (sessionStorage.getItem('admin_logged') !== 'true') return;
+            
+            const filterType = document.getElementById('log-filter-type')?.value || "All";
+            const searchVal = document.getElementById('log-search-input')?.value || "";
+            const limitVal = document.getElementById('log-limit-select')?.value || 100;
+            
+            const tableBody = document.getElementById('admin-logs-history-body');
+            if (!tableBody) return;
+            
+            try {
+                const params = new URLSearchParams({
+                    password: 'admin',
+                    limit: limitVal,
+                    filter: filterType,
+                    search: searchVal
+                });
+                
+                const res = await fetch(`https://lgtracker-api.onrender.com/api/admin/logs?${params.toString()}`);
+                if (!res.ok) {
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: #e74c3c;">Erreur de chargement des logs.</td></tr>';
+                    return;
+                }
+                const logs = await res.json();
+                
+                tableBody.innerHTML = '';
+                if (logs.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucun log ne correspond aux critères.</td></tr>';
+                    return;
+                }
+                
+                logs.forEach(log => {
+                    const date = new Date(log.created_at);
+                    const horaire = date.toLocaleString('fr-FR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    
+                    let badgeColor = "rgba(255,255,255,0.1)";
+                    let typeText = log.event_type;
+                    if (log.event_type === "connexion") { badgeColor = "rgba(46, 204, 113, 0.2)"; typeText = "📥 Connexion"; }
+                    else if (log.event_type === "deconnexion") { badgeColor = "rgba(149, 165, 166, 0.2)"; typeText = "📤 Déconnexion"; }
+                    else if (log.event_type === "kill") { badgeColor = "rgba(52, 152, 219, 0.2)"; typeText = "⚔️ Kill"; }
+                    else if (log.event_type === "teamkill") { badgeColor = "rgba(230, 126, 34, 0.2)"; typeText = "⚠️ Teamkill"; }
+                    else if (log.event_type === "chat") { badgeColor = "rgba(241, 196, 15, 0.2)"; typeText = "💬 Chat"; }
+                    else if (log.event_type === "capture") { badgeColor = "rgba(155, 89, 182, 0.2)"; typeText = "🚩 Capture"; }
+                    else if (log.event_type === "vehicle_destroyed") { badgeColor = "rgba(231, 76, 60, 0.2)"; typeText = "💥 Véhicule"; }
+                    else if (log.event_type === "online") { badgeColor = "rgba(46, 204, 113, 0.4)"; typeText = "🟢 En Ligne"; }
+                    else if (log.event_type === "offline") { badgeColor = "rgba(231, 76, 60, 0.4)"; typeText = "🔴 Hors-Ligne"; }
+                    
+                    const player = log.player_name || '<span style="color:#666;">Système</span>';
+                    
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td style="color: rgba(255,255,255,0.6); font-family: monospace;">${horaire}</td>
+                            <td><span style="display:inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: ${badgeColor}; color: #fff;">${typeText}</span></td>
+                            <td style="font-weight: bold; color: #fff;">${player}</td>
+                            <td style="text-align: left; color: #ccc;">${log.details}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Erreur chargement logs historique :", err);
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: #e74c3c;">Impossible de charger les logs depuis la base de données.</td></tr>';
+            }
+        }
+
         // Gestion des Onglets Principaux
         const tabLinks = document.querySelectorAll('.tab-link');
         const tabContents = document.querySelectorAll('.rules-content');
@@ -690,12 +988,10 @@
                 const targetAdminTab = link.getAttribute('data-admin-tab');
                 document.getElementById(targetAdminTab).classList.add('active');
 
-                if (targetAdminTab === 'admin-livemap') {
-                    if (map) {
-                        setTimeout(() => {
-                            map.invalidateSize();
-                        }, 100);
-                    }
+                if (targetAdminTab === 'admin-dashboard') {
+                    actualiserMetricsDashboard();
+                } else if (targetAdminTab === 'admin-history-logs') {
+                    actualiserLogsHistorique();
                 }
             });
         });
@@ -822,8 +1118,45 @@
                     });
                 }
 
-                // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN
+                // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN & GRAPHIQUE TOP JOUEURS
                 if (sessionStorage.getItem('admin_logged') === 'true') {
+                    // Throttling des requêtes d'historique de logs et de métriques en arrière-plan
+                    const maintenant = Date.now();
+                    const activeSubTab = document.querySelector('.admin-tab-link.active')?.getAttribute('data-admin-tab');
+                    
+                    if (activeSubTab === 'admin-dashboard' && maintenant - dernierRefreshMetrics > 15000) {
+                        actualiserMetricsDashboard();
+                        dernierRefreshMetrics = maintenant;
+                    }
+                    if (activeSubTab === 'admin-history-logs' && maintenant - dernierRefreshLogsHist > 10000) {
+                        actualiserLogsHistorique();
+                        dernierRefreshLogsHist = maintenant;
+                    }
+
+                    // Mise à jour des cartes de statistiques du dashboard
+                    const dashActive = document.getElementById('dash-active-players');
+                    if (dashActive) dashActive.innerText = serveur.joueursCount;
+                    
+                    const dashRatio = document.getElementById('dash-factions-ratio');
+                    if (dashRatio) dashRatio.innerText = `${serveur.equipes.US.length} US / ${serveur.equipes.URSS.length} URSS`;
+                    
+                    const dashStatus = document.getElementById('dash-server-status');
+                    if (dashStatus) {
+                        dashStatus.innerText = serveur.status === "online" ? "En Ligne" : "Hors-ligne";
+                        dashStatus.style.color = serveur.status === "online" ? "#2ecc71" : "#e74c3c";
+                    }
+                    
+                    const dashTotal = document.getElementById('dash-total-registered');
+                    if (dashTotal) dashTotal.innerText = Object.keys(classement).length;
+
+                    // Mise à jour du graphique Chart.js Top Joueurs
+                    if (chartTopPlayers) {
+                        const top7 = joueursTries.slice(0, 7);
+                        chartTopPlayers.data.labels = top7.map(j => j.nom);
+                        chartTopPlayers.data.datasets[0].data = top7.map(j => j.kills);
+                        chartTopPlayers.update();
+                    }
+
                     const zoneAnalysis = document.getElementById('admin-analysis-body');
                     const filterInput = document.getElementById('admin-search-player');
                     const filterText = filterInput ? filterInput.value.toLowerCase().trim() : "";
@@ -994,6 +1327,12 @@
         document.getElementById('admin-search-player').addEventListener('input', () => {
             actualiserDashboard();
         });
+
+        // Événements pour l'historique complet des logs
+        document.getElementById('log-filter-type')?.addEventListener('change', actualiserLogsHistorique);
+        document.getElementById('log-search-input')?.addEventListener('input', actualiserLogsHistorique);
+        document.getElementById('log-limit-select')?.addEventListener('change', actualiserLogsHistorique);
+        document.getElementById('btn-refresh-logs')?.addEventListener('click', actualiserLogsHistorique);
 
         // Événements d'outils de diagnostics
         document.getElementById('btn-admin-ping-api').addEventListener('click', async () => {
