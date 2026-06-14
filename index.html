@@ -117,7 +117,10 @@
     <script>
         async function recupererStatsLive() {
             try {
-                const reponse = await fetch('http://localhost:3000/api/stats');
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3000'
+                    : 'https://lgtracker-api.onrender.com';
+                const reponse = await fetch(`${API_URL}/api/stats`);
                 const data = await reponse.json();
 
                 // On cible le sous-paquet "server"

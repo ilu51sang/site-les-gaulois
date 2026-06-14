@@ -51,8 +51,10 @@
         // Cette fonction va demander les stats au "Cerveau" Node.js
         async function recupererStats() {
             try {
-                // On tape sur notre API locale
-                const reponse = await fetch('http://localhost:3000/api/stats');
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3000'
+                    : 'https://lgtracker-api.onrender.com';
+                const reponse = await fetch(`${API_URL}/api/stats`);
                 const data = await reponse.json();
 
                 // On cible la zone d'affichage
@@ -65,7 +67,14 @@
                 } else {
                     // Sinon, on affiche chaque message
                     data.killfeed.forEach(action => {
-                        zoneKillfeed.innerHTML += `<div class="kill-entry"><span class="time">[${action.horaire}]</span> ${action.message}</div>`;
+                        let displayTime = action.horaire;
+                        if (action.horaire && (action.horaire.includes('T') || action.horaire.includes('-') || !isNaN(Date.parse(action.horaire)))) {
+                            try {
+                                const d = new Date(action.horaire);
+                                displayTime = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            } catch(e) {}
+                        }
+                        zoneKillfeed.innerHTML += `<div class="kill-entry"><span class="time">[${displayTime}]</span> ${action.message}</div>`;
                     });
                 }
             } catch (erreur) {
