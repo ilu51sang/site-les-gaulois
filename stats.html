@@ -1089,9 +1089,15 @@
                     peakPlayersBadge.innerText = `${data.peaks.today} (Record : ${data.peaks.allTime})`;
                 }
                 
-                // Mettre à jour le graphique des heures de pointe
+                // Mettre à jour le graphique des heures de pointe (conversion UTC -> Local Timezone)
                 if (chartPeakHours && data.peakHours) {
-                    chartPeakHours.data.datasets[0].data = data.peakHours;
+                    const offsetHours = Math.round(-new Date().getTimezoneOffset() / 60);
+                    const localPeakHours = Array(24).fill(0);
+                    for (let h = 0; h < 24; h++) {
+                        const localHour = (h + offsetHours + 24) % 24;
+                        localPeakHours[localHour] = data.peakHours[h];
+                    }
+                    chartPeakHours.data.datasets[0].data = localPeakHours;
                     chartPeakHours.update();
                 }
             } catch (err) {
