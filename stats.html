@@ -185,6 +185,34 @@
             background-color: #e74c3c;
             color: white;
         }
+        .btn-pagination {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-family: inherit;
+        }
+        .btn-pagination:hover:not(:disabled) {
+            background-color: #f1c40f;
+            color: #000;
+            border-color: #f1c40f;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-pagination:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        #leaderboard-search:focus {
+            border-color: #f1c40f !important;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -230,24 +258,35 @@
                 <!-- 1. ONGLET PUBLIC : CLASSEMENT -->
                 <div id="tab-leaderboard" class="rules-content active">
                     <div class="leaderboard-section" style="margin-top: 0;">
-                        <h3 class="panel-title" style="color: #f1c40f; border-bottom-color: rgba(241, 196, 15, 0.3);">🏆 CLASSEMENT GÉNÉRAL DES GAULOIS</h3>
-                        <table class="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Opérateur</th>
-                                    <th style="color: #f1c40f;">Temps de jeu 🕒</th>
-                                    <th style="color: #2ecc71;">Kills 🔫</th>
-                                    <th style="color: #e74c3c;">Morts 💀</th>
-                                    <th style="color: #3498db;">Ratio K/D 📊</th>
-                                    <th style="color: #f39c12;">Captures 🚩</th>
-                                    <th style="color: #9b59b6;">Véh. Détruits 💥</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body">
-                                <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement des données satellites...</td></tr>
-                            </tbody>
-                        </table>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 15px;">
+                            <h3 class="panel-title" style="margin: 0; border: none; padding: 0; color: #f1c40f;">🏆 CLASSEMENT GÉNÉRAL DES GAULOIS</h3>
+                            <input type="text" id="leaderboard-search" placeholder="Rechercher un joueur..." style="padding: 10px 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; width: 280px; font-family: inherit; font-size: 0.95rem; outline: none; transition: all 0.3s;">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rang</th>
+                                        <th>Opérateur</th>
+                                        <th style="color: #f1c40f;">Temps de jeu 🕒</th>
+                                        <th style="color: #2ecc71;">Kills 🔫</th>
+                                        <th style="color: #e74c3c;">Morts 💀</th>
+                                        <th style="color: #3498db;">Ratio K/D 📊</th>
+                                        <th style="color: #f39c12;">Captures 🚩</th>
+                                        <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-body">
+                                    <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement des données satellites...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <div id="leaderboard-pagination" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+                            <button class="btn-pagination" id="btn-leaderboard-prev" disabled>Précédent</button>
+                            <span id="leaderboard-page-info" style="color: #aaa; font-weight: bold; min-width: 120px; text-align: center;">Page 1 sur 1</span>
+                            <button class="btn-pagination" id="btn-leaderboard-next" disabled>Suivant</button>
+                        </div>
                     </div>
                 </div>
 
@@ -720,6 +759,12 @@
         let chartPeakHours = null;
         let dernierRefreshMetrics = 0;
         let dernierRefreshLogsHist = 0;
+
+        // Variables de pagination et recherche pour le classement général public
+        let leaderboardCurrentPage = 1;
+        const leaderboardItemsPerPage = 20;
+        let leaderboardSearchQuery = "";
+        let globalLeaderboardData = [];
 
         function checkMapAuth(mapName, mapSize) {
             if (sessionStorage.getItem('admin_logged') === 'true') {
@@ -1280,6 +1325,20 @@
                 const serveur = dataRaw.server;
                 const classement = dataRaw.leaderboard;
 
+                // Tri initial sécurisé de tous les joueurs (avec fallbacks pour éviter les valeurs null/undefined)
+                const joueursTries = Object.keys(classement).map(nom => {
+                    const joueur = classement[nom];
+                    return {
+                        nom: nom,
+                        kills: typeof joueur.kills === 'number' ? joueur.kills : 0,
+                        morts: typeof joueur.morts === 'number' ? joueur.morts : 0,
+                        teamkills: typeof joueur.teamkills === 'number' ? joueur.teamkills : 0,
+                        captures: typeof joueur.captures === 'number' ? joueur.captures : 0,
+                        vehicles_destroyed: typeof joueur.vehicles_destroyed === 'number' ? joueur.vehicles_destroyed : 0,
+                        playtime: typeof joueur.playtime === 'number' ? joueur.playtime : 0
+                    };
+                }).sort((a, b) => b.kills - a.kills);
+
                 // 1. MISE À JOUR DU LIVE FEED (Uniquement si connecté admin pour optimiser le rendu)
                 if (sessionStorage.getItem('admin_logged') === 'true') {
                     const zoneKillfeed = document.getElementById('live-killfeed');
@@ -1378,46 +1437,9 @@
                     }
                 }
 
-                // 5. MISE À JOUR DU LEADERBOARD PUBLIC (Optimisé & limité au Top 100)
-                const zoneLeaderboard = document.getElementById('leaderboard-body');
-                if (zoneLeaderboard) {
-                    zoneLeaderboard.innerHTML = '';
-                    
-                    const joueursTries = Object.keys(classement).map(nom => {
-                        return { nom: nom, ...classement[nom] };
-                    }).sort((a, b) => b.kills - a.kills);
-
-                    if (joueursTries.length === 0) {
-                        zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune donnée de combat enregistrée.</td></tr>';
-                    } else {
-                        const top100 = joueursTries.slice(0, 100);
-                        let leaderboardHtml = '';
-                        top100.forEach((joueur, index) => {
-                            const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
-                            const playtimeFormatted = formaterTempsJeu(joueur.playtime);
-                            const couronne = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `<span style="color:#777;">#${index + 1}</span> `;
-                            
-                            const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
-                            const nameCell = isAdmin 
-                                ? `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`
-                                : `<td style="font-weight: bold; color: white;">${joueur.nom}</td>`;
-
-                            leaderboardHtml += `
-                                <tr>
-                                    <td style="font-weight: bold;">${couronne}</td>
-                                    ${nameCell}
-                                    <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
-                                    <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
-                                    <td style="color: #e74c3c;">${joueur.morts}</td>
-                                    <td style="color: #3498db; font-weight: bold;">${ratio}</td>
-                                    <td style="color: #f39c12; font-weight: bold;">${joueur.captures || 0}</td>
-                                    <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed || 0}</td>
-                                </tr>
-                            `;
-                        });
-                        zoneLeaderboard.innerHTML = leaderboardHtml;
-                    }
-                }
+                // 5. MISE À JOUR DU LEADERBOARD PUBLIC (Optimisé, Pagina & Filtré)
+                globalLeaderboardData = joueursTries;
+                afficherLeaderboardPublic();
 
                 // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN & GRAPHIQUE TOP JOUEURS
                 if (sessionStorage.getItem('admin_logged') === 'true') {
@@ -1485,8 +1507,10 @@
                         } else {
                             let analysisHtml = '';
                             filteredJoueurs.forEach(joueur => {
-                                const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
-                                const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                                const kills = joueur.kills || 0;
+                                const morts = joueur.morts || 0;
+                                const ratio = morts > 0 ? (kills / morts).toFixed(2) : kills.toFixed(2);
+                                const playtimeFormatted = formaterTempsJeu(joueur.playtime || 0);
                                 
                                 let tkStyle = "color: #f39c12; font-weight: bold;";
                                 if (joueur.teamkills >= 3) {
@@ -1497,8 +1521,8 @@
                                     <tr>
                                         <td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>
                                         <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
-                                        <td style="color: #2ecc71;">${joueur.kills}</td>
-                                        <td style="color: #e74c3c;">${joueur.morts}</td>
+                                        <td style="color: #2ecc71;">${kills}</td>
+                                        <td style="color: #e74c3c;">${morts}</td>
                                         <td style="color: #3498db; font-weight: bold;">${ratio}</td>
                                         <td style="${tkStyle}">${joueur.teamkills || 0}</td>
                                         <td style="color: #9b59b6;">${joueur.vehicles_destroyed || 0}</td>
@@ -1542,6 +1566,84 @@
             } catch (err) {
                 console.error("Erreur de liaison API tactique.", err);
             }
+        }
+
+        // --- AFFICHAGE PAGINÉ ET FILTRÉ DU LEADERBOARD PUBLIC ---
+        function afficherLeaderboardPublic() {
+            const zoneLeaderboard = document.getElementById('leaderboard-body');
+            if (!zoneLeaderboard) return;
+
+            // Filtrage par recherche
+            let dataFiltree = globalLeaderboardData;
+            if (leaderboardSearchQuery) {
+                dataFiltree = globalLeaderboardData.filter(j => 
+                    j.nom.toLowerCase().includes(leaderboardSearchQuery)
+                );
+            }
+
+            const btnPrev = document.getElementById('btn-leaderboard-prev');
+            const btnNext = document.getElementById('btn-leaderboard-next');
+            const pageInfo = document.getElementById('leaderboard-page-info');
+
+            if (dataFiltree.length === 0) {
+                zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucun joueur correspondant.</td></tr>';
+                if (btnPrev) btnPrev.disabled = true;
+                if (btnNext) btnNext.disabled = true;
+                if (pageInfo) pageInfo.textContent = "Page 1 sur 1";
+                return;
+            }
+
+            // Calcul pagination
+            const totalItems = dataFiltree.length;
+            const totalPages = Math.ceil(totalItems / leaderboardItemsPerPage);
+
+            // Ajustement si la page courante dépasse le nombre total de pages après filtrage
+            if (leaderboardCurrentPage > totalPages) {
+                leaderboardCurrentPage = totalPages;
+            }
+            if (leaderboardCurrentPage < 1) {
+                leaderboardCurrentPage = 1;
+            }
+
+            const startIndex = (leaderboardCurrentPage - 1) * leaderboardItemsPerPage;
+            const endIndex = Math.min(startIndex + leaderboardItemsPerPage, totalItems);
+            const pageData = dataFiltree.slice(startIndex, endIndex);
+
+            let leaderboardHtml = '';
+            pageData.forEach((joueur, i) => {
+                // Trouver l'index réel du joueur dans globalLeaderboardData (le classement absolu par kills)
+                const indexAbsolu = globalLeaderboardData.findIndex(j => j.nom === joueur.nom);
+                const rang = indexAbsolu !== -1 ? indexAbsolu : (startIndex + i);
+                
+                const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
+                const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                const couronne = rang === 0 ? "🥇 " : rang === 1 ? "🥈 " : rang === 2 ? "🥉 " : `<span style="color:#777;">#${rang + 1}</span> `;
+                
+                const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
+                const nameCell = isAdmin 
+                    ? `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`
+                    : `<td style="font-weight: bold; color: white;">${joueur.nom}</td>`;
+
+                leaderboardHtml += `
+                    <tr>
+                        <td style="font-weight: bold;">${couronne}</td>
+                        ${nameCell}
+                        <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
+                        <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
+                        <td style="color: #e74c3c;">${joueur.morts}</td>
+                        <td style="color: #3498db; font-weight: bold;">${ratio}</td>
+                        <td style="color: #f39c12; font-weight: bold;">${joueur.captures}</td>
+                        <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed}</td>
+                    </tr>
+                `;
+            });
+
+            zoneLeaderboard.innerHTML = leaderboardHtml;
+
+            // Mise à jour des contrôles de pagination
+            if (pageInfo) pageInfo.textContent = `Page ${leaderboardCurrentPage} sur ${totalPages}`;
+            if (btnPrev) btnPrev.disabled = leaderboardCurrentPage === 1;
+            if (btnNext) btnNext.disabled = leaderboardCurrentPage === totalPages;
         }
 
         // --- SCRIPTS ET ÉVÉNEMENTS CONSOLE RCON & MODÉRATION ---
@@ -1691,12 +1793,42 @@
             }
         });
 
-        document.getElementById('btn-admin-reload').addEventListener('click', () => {
+        document.getElementById('btn-admin-reload')?.addEventListener('click', () => {
             const diagLog = document.getElementById('admin-diagnostic-log');
-            diagLog.textContent = "Force rechargement des données...";
+            if (diagLog) diagLog.textContent = "Force rechargement des données...";
             actualiserDashboard();
-            diagLog.textContent += " Terminé.";
-            diagLog.style.color = "#f1c40f";
+            if (diagLog) {
+                diagLog.textContent += " Terminé.";
+                diagLog.style.color = "#f1c40f";
+            }
+        });
+
+        // Événements pour le classement général public (recherche et pagination)
+        document.getElementById('leaderboard-search')?.addEventListener('input', (e) => {
+            leaderboardSearchQuery = e.target.value.toLowerCase().trim();
+            leaderboardCurrentPage = 1;
+            afficherLeaderboardPublic();
+        });
+
+        document.getElementById('btn-leaderboard-prev')?.addEventListener('click', () => {
+            if (leaderboardCurrentPage > 1) {
+                leaderboardCurrentPage--;
+                afficherLeaderboardPublic();
+            }
+        });
+
+        document.getElementById('btn-leaderboard-next')?.addEventListener('click', () => {
+            let dataFiltree = globalLeaderboardData;
+            if (leaderboardSearchQuery) {
+                dataFiltree = globalLeaderboardData.filter(j => 
+                    j.nom.toLowerCase().includes(leaderboardSearchQuery)
+                );
+            }
+            const totalPages = Math.ceil(dataFiltree.length / leaderboardItemsPerPage);
+            if (leaderboardCurrentPage < totalPages) {
+                leaderboardCurrentPage++;
+                afficherLeaderboardPublic();
+            }
         });
 
         // ========== V3: FONCTIONS FICHE JOUEUR ==========
