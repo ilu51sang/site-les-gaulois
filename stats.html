@@ -252,6 +252,7 @@
                 
                 <div class="rules-tabs" style="margin-bottom: 40px;">
                     <button class="tab-link active" data-tab="tab-leaderboard">🏆 Classement Général</button>
+                    <button class="tab-link" data-tab="tab-sessions">📜 Historique des Parties</button>
                     <button class="tab-link" data-tab="tab-admin-portal">🛡️ Espace Administrateur</button>
                 </div>
 
@@ -286,6 +287,32 @@
                             <button class="btn-pagination" id="btn-leaderboard-prev" disabled>Précédent</button>
                             <span id="leaderboard-page-info" style="color: #aaa; font-weight: bold; min-width: 120px; text-align: center;">Page 1 sur 1</span>
                             <button class="btn-pagination" id="btn-leaderboard-next" disabled>Suivant</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1b. ONGLET PUBLIC : HISTORIQUE DES SESSIONS -->
+                <div id="tab-sessions" class="rules-content">
+                    <div class="leaderboard-section" style="margin-top: 0;">
+                        <h3 class="panel-title" style="color: #3498db; border-bottom-color: rgba(52, 152, 219, 0.3);">📜 HISTORIQUE DES PARTIES / SESSIONS</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Partie ID</th>
+                                        <th>Carte / Secteur</th>
+                                        <th style="color: #2ecc71;">Début ⏳</th>
+                                        <th style="color: #e74c3c;">Fin ⌛</th>
+                                        <th>Durée 🕒</th>
+                                        <th style="color: #f1c40f;">Joueurs uniques 👥</th>
+                                        <th style="color: #2ecc71;">Kills 🔫</th>
+                                        <th style="color: #e67e22;">TKs ⚠️</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessions-table-body">
+                                    <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de l'historique des sessions...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1288,6 +1315,8 @@
 
                 if (targetTab === 'tab-admin-portal') {
                     checkMapAuth(lastMapName, lastMapSize);
+                } else if (targetTab === 'tab-sessions') {
+                    actualiserSessions();
                 }
             });
         });
@@ -1644,6 +1673,77 @@
             if (pageInfo) pageInfo.textContent = `Page ${leaderboardCurrentPage} sur ${totalPages}`;
             if (btnPrev) btnPrev.disabled = leaderboardCurrentPage === 1;
             if (btnNext) btnNext.disabled = leaderboardCurrentPage === totalPages;
+        }
+
+        // --- RECUPERATION ET RENDU DE L'HISTORIQUE DES SESSIONS ---
+        async function actualiserSessions() {
+            const tableBody = document.getElementById('sessions-table-body');
+            if (!tableBody) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/sessions`);
+                if (!res.ok) throw new Error('Impossible de charger les sessions');
+                const sessions = await res.json();
+
+                if (sessions.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune partie enregistrée dans les archives tactiques.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                sessions.forEach(session => {
+                    // Supporter SQLite et PostgreSQL (Postgres utilise des dates ISO, SQLite des chaines brutes)
+                    let startedStr = session.started_at;
+                    if (typeof startedStr === 'string' && !startedStr.includes('T') && !startedStr.includes('Z')) {
+                        startedStr = startedStr.replace(' ', 'T') + 'Z';
+                    }
+                    let endedStr = session.ended_at;
+                    if (endedStr && typeof endedStr === 'string' && !endedStr.includes('T') && !endedStr.includes('Z')) {
+                        endedStr = endedStr.replace(' ', 'T') + 'Z';
+                    }
+
+                    const started = new Date(startedStr);
+                    const ended = endedStr ? new Date(endedStr) : null;
+                    
+                    const formatOptions = {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    };
+                    const dateDebut = started.toLocaleString('fr-FR', formatOptions);
+                    const dateFin = ended ? ended.toLocaleString('fr-FR', formatOptions) : 'En cours 🟢';
+                    
+                    // Calcul de la durée
+                    let duree = '';
+                    if (!ended) {
+                        duree = '<span style="color: #2ecc71; font-weight: bold;">En cours 🟢</span>';
+                    } else {
+                        const diffMs = ended - started;
+                        const diffMin = Math.round(diffMs / 60000);
+                        const heures = Math.floor(diffMin / 60);
+                        const minutes = diffMin % 60;
+                        duree = heures > 0 ? `${heures}h${minutes.toString().padStart(2, '0')}` : `${minutes}m`;
+                    }
+
+                    html += `
+                        <tr>
+                            <td style="font-weight: bold; color: #3498db;">#${session.id}</td>
+                            <td style="font-weight: bold; color: white;">🏕️ ${session.map_name}</td>
+                            <td style="color: #2ecc71; font-family: monospace;">${dateDebut}</td>
+                            <td style="color: #e74c3c; font-family: monospace;">${ended ? dateFin : '<span style="color: #2ecc71; font-weight: bold;">En cours 🟢</span>'}</td>
+                            <td style="font-weight: bold; color: #aaa;">${duree}</td>
+                            <td style="color: #f1c40f; font-weight: bold;">${session.total_connections || 0}</td>
+                            <td style="color: #2ecc71; font-weight: bold;">${session.total_kills || 0}</td>
+                            <td style="color: #e67e22; font-weight: bold;">${session.total_tks || 0}</td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = html;
+            } catch (err) {
+                console.error("Erreur lors du chargement des sessions :", err);
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: #e74c3c; font-weight:bold;">Erreur de liaison API sessions.</td></tr>';
+            }
         }
 
         // --- SCRIPTS ET ÉVÉNEMENTS CONSOLE RCON & MODÉRATION ---
