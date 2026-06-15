@@ -119,6 +119,16 @@
         .leaderboard-table tr:hover {
             background-color: rgba(255, 255, 255, 0.03);
         }
+        .session-row-clickable {
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .session-row-clickable:hover {
+            background-color: rgba(52, 152, 219, 0.1) !important;
+        }
+        .session-row-clickable:active {
+            transform: scale(0.998);
+        }
 
         @media (max-width: 992px) {
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -730,6 +740,54 @@
                 <h3 style="color: #3498db; font-size: 1.1rem; margin-bottom: 10px; border-bottom: 1px solid rgba(52,152,219,0.2); padding-bottom: 8px;">📋 Dernières Activités</h3>
                 <div id="profile-recent-logs" style="max-height: 250px; overflow-y: auto;">
                     <p style="color: rgba(255,255,255,0.4); font-style: italic;">Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VUE GLOBALE SESSION / HISTORIQUE PARTIE -->
+    <div id="session-details-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
+        <div style="max-width: 900px; margin: 40px auto; padding: 30px; background: rgba(20, 20, 30, 0.95); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); position: relative;">
+            <button id="btn-close-session-details" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #e74c3c; font-size: 1.5rem; cursor: pointer; font-weight: bold;">✕</button>
+            <h2 id="session-details-title" style="margin: 0 0 5px 0; color: #fff; font-size: 1.6rem;">🎮 Rapport de Partie</h2>
+            <p id="session-details-subtitle" style="color: #aaa; font-size: 0.95rem; margin-bottom: 20px;">Chargement des données de session...</p>
+
+            <!-- Stats Synthèse de Session -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 25px;">
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border-left: 3px solid #f1c40f;">
+                    <div style="color: #aaa; font-size: 0.8rem;">Joueurs uniques 👥</div>
+                    <div id="session-details-players-count" style="font-size: 1.3rem; font-weight: bold; color: #f1c40f;">0</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border-left: 3px solid #2ecc71;">
+                    <div style="color: #aaa; font-size: 0.8rem;">Kills Totaux 🔫</div>
+                    <div id="session-details-kills-count" style="font-size: 1.3rem; font-weight: bold; color: #2ecc71;">0</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border-left: 3px solid #e67e22;">
+                    <div style="color: #aaa; font-size: 0.8rem;">Tir Fratricides (TK) ⚠️</div>
+                    <div id="session-details-tks-count" style="font-size: 1.3rem; font-weight: bold; color: #e67e22;">0</div>
+                </div>
+            </div>
+
+            <!-- Liste des joueurs de la session -->
+            <div>
+                <h3 style="color: #3498db; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid rgba(52,152,219,0.2); padding-bottom: 8px;">👥 Opérateurs Ayant Participé</h3>
+                <div style="overflow-x: auto;">
+                    <table class="leaderboard-table" style="margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Opérateur</th>
+                                <th style="color: #f1c40f;">Temps de jeu 🕒</th>
+                                <th style="color: #2ecc71;">Kills 🔫</th>
+                                <th style="color: #e74c3c;">Morts 💀</th>
+                                <th style="color: #e67e22;">TKs ⚠️</th>
+                                <th style="color: #f39c12;">Captures 🚩</th>
+                                <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                            </tr>
+                        </thead>
+                        <tbody id="session-players-table-body">
+                            <tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de la liste des opérateurs...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1726,8 +1784,12 @@
                         duree = heures > 0 ? `${heures}h${minutes.toString().padStart(2, '0')}` : `${minutes}m`;
                     }
 
+                    // Durée brute nettoyée des balises HTML pour passage en argument JS
+                    const dureeBrute = ended ? duree : 'En cours';
+                    const mapNameEscaped = session.map_name.replace(/'/g, "\\'");
+
                     html += `
-                        <tr>
+                        <tr class="session-row-clickable" onclick="ouvrirDetailsSession(${session.id}, '${mapNameEscaped}', '${dateDebut}', '${ended ? dateFin : 'En cours 🟢'}', '${dureeBrute}', ${session.total_connections || 0}, ${session.total_kills || 0}, ${session.total_tks || 0})">
                             <td style="font-weight: bold; color: #3498db;">#${session.id}</td>
                             <td style="font-weight: bold; color: white;">🏕️ ${session.map_name}</td>
                             <td style="color: #2ecc71; font-family: monospace;">${dateDebut}</td>
@@ -2037,6 +2099,64 @@
             if (e.target.id === 'player-profile-modal') {
                 document.getElementById('player-profile-modal').style.display = 'none';
                 currentProfilePlayer = null;
+            }
+        });
+
+        // ========== V3: DETAILS SESSIONS ==========
+        async function ouvrirDetailsSession(sessionId, mapName, dateDebut, dateFin, duree, connections, kills, tks) {
+            const modal = document.getElementById('session-details-modal');
+            if (!modal) return;
+            
+            modal.style.display = 'block';
+            
+            document.getElementById('session-details-title').textContent = `🎮 Rapport de Partie : Session #${sessionId}`;
+            document.getElementById('session-details-subtitle').innerHTML = `🏕️ Carte : <strong>${mapName}</strong> | ⏳ Début : <strong>${dateDebut}</strong> | ⌛ Fin : <strong>${dateFin}</strong> | 🕒 Durée : <strong>${duree}</strong>`;
+            
+            document.getElementById('session-details-players-count').textContent = connections;
+            document.getElementById('session-details-kills-count').textContent = kills;
+            document.getElementById('session-details-tks-count').textContent = tks;
+            
+            const tableBody = document.getElementById('session-players-table-body');
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de la liste des Gaulois...</td></tr>';
+            
+            try {
+                const res = await fetch(`${API_URL}/api/sessions/${sessionId}/players`);
+                if (!res.ok) throw new Error('Impossible de charger les statistiques des joueurs de la session');
+                const players = await res.json();
+                
+                if (players.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune statistique de joueur enregistrée pour cette session.</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                players.forEach(p => {
+                    html += `
+                        <tr>
+                            <td style="font-weight: bold; color: white;">🪖 ${p.player_name}</td>
+                            <td style="color: #f1c40f; font-weight: bold; font-family: monospace;">${formaterTempsJeu(p.playtime || 0)}</td>
+                            <td style="color: #2ecc71; font-weight: bold;">${p.kills || 0}</td>
+                            <td style="color: #e74c3c; font-weight: bold;">${p.deaths || 0}</td>
+                            <td style="color: #e67e22; font-weight: bold;">${p.teamkills || 0}</td>
+                            <td style="color: #f39c12; font-weight: bold;">${p.captures || 0}</td>
+                            <td style="color: #9b59b6; font-weight: bold;">${p.vehicles_destroyed || 0}</td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = html;
+            } catch (err) {
+                console.error("Erreur lors de la récupération des joueurs de la session :", err);
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: #e74c3c; font-weight:bold;">Erreur de liaison API joueurs de session.</td></tr>';
+            }
+        }
+
+        document.getElementById('btn-close-session-details').addEventListener('click', () => {
+            document.getElementById('session-details-modal').style.display = 'none';
+        });
+
+        document.getElementById('session-details-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'session-details-modal') {
+                document.getElementById('session-details-modal').style.display = 'none';
             }
         });
 
