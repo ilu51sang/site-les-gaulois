@@ -769,7 +769,7 @@
             </div>
 
             <!-- Liste des joueurs de la session -->
-            <div>
+            <div style="margin-bottom: 30px;">
                 <h3 style="color: #3498db; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid rgba(52,152,219,0.2); padding-bottom: 8px;">👥 Opérateurs Ayant Participé</h3>
                 <div style="overflow-x: auto;">
                     <table class="leaderboard-table" style="margin-top: 5px;">
@@ -788,6 +788,14 @@
                             <tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de la liste des opérateurs...</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Frise Chronologique / Timeline de la Session -->
+            <div>
+                <h3 style="color: #f1c40f; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid rgba(241,196,15,0.2); padding-bottom: 8px;">📜 Journal des Événements Tactiques (Timeline)</h3>
+                <div id="session-timeline-container" style="max-height: 250px; overflow-y: auto; background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px;">
+                    <p style="color: rgba(255,255,255,0.4); font-style: italic; text-align: center;">Chargement de la chronologie des combats...</p>
                 </div>
             </div>
         </div>
@@ -2119,6 +2127,12 @@
             const tableBody = document.getElementById('session-players-table-body');
             tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement de la liste des Gaulois...</td></tr>';
             
+            const timelineContainer = document.getElementById('session-timeline-container');
+            if (timelineContainer) {
+                timelineContainer.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; text-align: center;">Chargement de la chronologie des combats...</p>';
+            }
+            
+            // 1. Récupération des statistiques des joueurs de la session
             try {
                 const res = await fetch(`${API_URL}/api/sessions/${sessionId}/players`);
                 if (!res.ok) throw new Error('Impossible de charger les statistiques des joueurs de la session');
@@ -2126,27 +2140,82 @@
                 
                 if (players.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune statistique de joueur enregistrée pour cette session.</td></tr>';
-                    return;
+                } else {
+                    let html = '';
+                    players.forEach(p => {
+                        html += `
+                            <tr>
+                                <td style="font-weight: bold; color: white;">🪖 ${p.player_name}</td>
+                                <td style="color: #f1c40f; font-weight: bold; font-family: monospace;">${formaterTempsJeu(p.playtime || 0)}</td>
+                                <td style="color: #2ecc71; font-weight: bold;">${p.kills || 0}</td>
+                                <td style="color: #e74c3c; font-weight: bold;">${p.deaths || 0}</td>
+                                <td style="color: #e67e22; font-weight: bold;">${p.teamkills || 0}</td>
+                                <td style="color: #f39c12; font-weight: bold;">${p.captures || 0}</td>
+                                <td style="color: #9b59b6; font-weight: bold;">${p.vehicles_destroyed || 0}</td>
+                            </tr>
+                        `;
+                    });
+                    tableBody.innerHTML = html;
                 }
-                
-                let html = '';
-                players.forEach(p => {
-                    html += `
-                        <tr>
-                            <td style="font-weight: bold; color: white;">🪖 ${p.player_name}</td>
-                            <td style="color: #f1c40f; font-weight: bold; font-family: monospace;">${formaterTempsJeu(p.playtime || 0)}</td>
-                            <td style="color: #2ecc71; font-weight: bold;">${p.kills || 0}</td>
-                            <td style="color: #e74c3c; font-weight: bold;">${p.deaths || 0}</td>
-                            <td style="color: #e67e22; font-weight: bold;">${p.teamkills || 0}</td>
-                            <td style="color: #f39c12; font-weight: bold;">${p.captures || 0}</td>
-                            <td style="color: #9b59b6; font-weight: bold;">${p.vehicles_destroyed || 0}</td>
-                        </tr>
-                    `;
-                });
-                tableBody.innerHTML = html;
             } catch (err) {
                 console.error("Erreur lors de la récupération des joueurs de la session :", err);
                 tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: #e74c3c; font-weight:bold;">Erreur de liaison API joueurs de session.</td></tr>';
+            }
+
+            // 2. Récupération de la frise chronologique (Timeline) de la session
+            if (timelineContainer) {
+                try {
+                    const resTimeline = await fetch(`${API_URL}/api/sessions/${sessionId}/timeline`);
+                    if (!resTimeline.ok) throw new Error('Impossible de charger la timeline de la session');
+                    const timeline = await resTimeline.json();
+                    
+                    if (timeline.length === 0) {
+                        timelineContainer.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; text-align: center;">Aucun événement tactique enregistré pour cette session.</p>';
+                    } else {
+                        let html = timeline.map(log => {
+                            let emoji = "🔹";
+                            let borderLeft = "3px solid rgba(255,255,255,0.1)";
+                            
+                            if (log.event_type === "kill") {
+                                emoji = "⚔️";
+                                borderLeft = "3px solid #3498db";
+                            } else if (log.event_type === "teamkill") {
+                                emoji = "⚠️";
+                                borderLeft = "3px solid #e67e22";
+                            } else if (log.event_type === "capture") {
+                                emoji = "🚩";
+                                borderLeft = "3px solid #2ecc71";
+                            } else if (log.event_type === "vehicle_destroyed") {
+                                emoji = "💥";
+                                borderLeft = "3px solid #9b59b6";
+                            } else if (log.event_type === "online") {
+                                emoji = "🟢";
+                                borderLeft = "3px solid #2ecc71";
+                            } else if (log.event_type === "offline") {
+                                emoji = "🔴";
+                                borderLeft = "3px solid #e74c3c";
+                            }
+                            
+                            let displayTime = log.created_at;
+                            try {
+                                const d = new Date(log.created_at);
+                                displayTime = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            } catch(e) {}
+                            
+                            return `
+                                <div style="display: flex; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 4px; border-left: ${borderLeft}; font-size: 0.9rem;">
+                                    <span style="color: rgba(255,255,255,0.4); font-family: monospace; font-weight: bold; margin-right: 12px;">[${displayTime}]</span>
+                                    <span style="margin-right: 8px;">${emoji}</span>
+                                    <span style="color: #ddd;">${log.details}</span>
+                                </div>
+                            `;
+                        }).join('');
+                        timelineContainer.innerHTML = html;
+                    }
+                } catch (err) {
+                    console.error("Erreur lors du chargement de la timeline de session :", err);
+                    timelineContainer.innerHTML = '<p style="color: #e74c3c; text-align: center;">Erreur de liaison API fil d\'actualité.</p>';
+                }
             }
         }
 
