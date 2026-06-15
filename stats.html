@@ -10,6 +10,7 @@
     <!-- Leaflet.js Library for Tactical Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -284,7 +285,7 @@
                                         <th style="color: #e74c3c;">Morts 💀</th>
                                         <th style="color: #3498db;">Ratio K/D 📊</th>
                                         <th style="color: #f39c12;">Captures 🚩</th>
-                                        <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                        <th style="color: #9b59b6;">Véh. Perdus 💥</th>
                                     </tr>
                                 </thead>
                                 <tbody id="leaderboard-body">
@@ -356,11 +357,26 @@
                         <!-- Sous-onglets Admin -->
                         <div class="admin-tabs">
                             <button class="admin-tab-link active" data-admin-tab="admin-dashboard">📊 Tableau de bord</button>
+                            <button class="admin-tab-link" data-admin-tab="admin-map">🗺️ Carte Tactique</button>
                             <button class="admin-tab-link" data-admin-tab="admin-logs">📋 Journal de Combat</button>
                             <button class="admin-tab-link" data-admin-tab="admin-history-logs">📋 Historique des Logs</button>
                             <button class="admin-tab-link" data-admin-tab="admin-analysis">🔍 Analyses Opérateurs</button>
                             <button class="admin-tab-link" data-admin-tab="admin-watchlist">🎯 Watchlist</button>
                             <button class="admin-tab-link" data-admin-tab="admin-gestion">⚙️ Gestion Session & RCON</button>
+                        </div>
+
+                        <!-- SOUS-ONGLET NOUVEAU: CARTE TACTIQUE -->
+                        <div id="admin-map" class="admin-tab-content">
+                            <div class="panel-box" style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                                    <h3 class="panel-title" style="margin: 0; border: none; padding: 0; color: #f1c40f;">📡 Liaison Satellite - Carte Tactique Live</h3>
+                                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                        <button id="btn-toggle-heatmap" style="padding: 6px 12px; background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; font-family: inherit; transition: all 0.3s; border: 1px solid #e74c3c;">Afficher la Heatmap 💥</button>
+                                        <button id="btn-toggle-markers" style="padding: 6px 12px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; font-family: inherit; transition: all 0.3s; border: 1px solid #3498db;">Masquer les Joueurs 👥</button>
+                                    </div>
+                                </div>
+                                <div id="tactical-map" style="height: 600px; width: 100%; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); z-index: 1;"></div>
+                            </div>
                         </div>
 
                         <!-- SOUS-ONGLET 1: TABLEAU DE BORD ANALYTIQUE -->
@@ -543,7 +559,7 @@
                                                 <th style="color: #e74c3c;">Morts 💀</th>
                                                 <th style="color: #3498db;">Ratio 📊</th>
                                                 <th style="color: #f39c12;">Teamkills ⚠️</th>
-                                                <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                                <th style="color: #9b59b6;">Véh. Perdus 💥</th>
                                                 <th style="text-align: right;">Modération</th>
                                             </tr>
                                         </thead>
@@ -710,7 +726,7 @@
                     <div id="profile-teamkills" style="font-size: 1.3rem; font-weight: bold; color: #f39c12;">0</div>
                 </div>
                 <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center;">
-                    <div style="color: #aaa; font-size: 0.8rem;">Véh. Détruits</div>
+                    <div style="color: #aaa; font-size: 0.8rem;">Véh. Perdus</div>
                     <div id="profile-vehicles" style="font-size: 1.3rem; font-weight: bold; color: #9b59b6;">0</div>
                 </div>
             </div>
@@ -781,7 +797,7 @@
                                 <th style="color: #e74c3c;">Morts 💀</th>
                                 <th style="color: #e67e22;">TKs ⚠️</th>
                                 <th style="color: #f39c12;">Captures 🚩</th>
-                                <th style="color: #9b59b6;">Véh. Détruits 💥</th>
+                                <th style="color: #9b59b6;">Véh. Perdus 💥</th>
                             </tr>
                         </thead>
                         <tbody id="session-players-table-body">
@@ -838,6 +854,10 @@
         let mapOverlay = null;
         let lastMapName = "Eden";
         let lastMapSize = 12800;
+        let heatLayer = null;
+        let showHeatmap = false;
+        let showMarkers = true;
+        let activeSessionId = null;
 
         const mapAuthContainer = document.getElementById('map-auth-container');
         const mapLiveContainer = document.getElementById('map-live-container');
@@ -994,7 +1014,7 @@
                 });
             }
 
-            if (players && Array.isArray(players)) {
+            if (players && Array.isArray(players) && showMarkers) {
                 players.forEach(player => {
                     const lat = parseFloat(player.y);
                     const lng = parseFloat(player.x);
@@ -1027,6 +1047,61 @@
 
                     playerLayerGroup.addLayer(marker);
                 });
+            }
+        }
+
+        async function updateHeatmap(sessionId) {
+            if (!map || !isMapInitialized) return;
+            if (!showHeatmap) {
+                if (heatLayer) {
+                    map.removeLayer(heatLayer);
+                    heatLayer = null;
+                }
+                return;
+            }
+
+            if (!sessionId) {
+                if (heatLayer) {
+                    map.removeLayer(heatLayer);
+                    heatLayer = null;
+                }
+                return;
+            }
+
+            try {
+                const resTimeline = await fetch(`${API_URL}/api/sessions/${sessionId}/timeline`);
+                if (!resTimeline.ok) throw new Error('Impossible de charger la timeline');
+                const timeline = await resTimeline.json();
+
+                const heatPoints = [];
+                timeline.forEach(log => {
+                    if (log.event_type === 'kill' || log.event_type === 'teamkill') {
+                        // Extraire les coordonnées depuis details (ex: "A éliminé Dizzy (M16) @ 2450.5,6120.3")
+                        const coordMatch = log.details.match(/@\s*([0-9.]+)\s*,\s*([0-9.]+)/);
+                        if (coordMatch) {
+                            const lat = parseFloat(coordMatch[2]); // Z (y axis)
+                            const lng = parseFloat(coordMatch[1]); // X (x axis)
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                heatPoints.push([lat, lng, 1.0]); 
+                            }
+                        }
+                    }
+                });
+
+                if (heatLayer) {
+                    map.removeLayer(heatLayer);
+                }
+
+                // Initialiser la heatmap Leaflet
+                heatLayer = L.heatLayer(heatPoints, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 1,
+                    max: 1.0
+                }).addTo(map);
+
+            } catch (err) {
+                console.error("Erreur lors de la mise à jour de la heatmap :", err);
             }
         }
 
@@ -1403,6 +1478,14 @@
                 if (targetAdminTab === 'admin-dashboard') {
                     actualiserMetricsDashboard();
                     actualiserStatsSummary();
+                } else if (targetAdminTab === 'admin-map') {
+                    initTacticalMap(lastMapName, lastMapSize);
+                    if (map) {
+                        setTimeout(() => {
+                            map.invalidateSize();
+                            updateHeatmap(activeSessionId);
+                        }, 100);
+                    }
                 } else if (targetAdminTab === 'admin-history-logs') {
                     actualiserLogsHistorique();
                 } else if (targetAdminTab === 'admin-gestion') {
@@ -1633,6 +1716,7 @@
                     }
 
                     // 6. MISE À JOUR DE LA LIVEMAP ADMIN
+                    activeSessionId = serveur.currentSessionId;
                     if (serveur.map) {
                         lastMapName = serveur.map.mapName || "Eden";
                         lastMapSize = serveur.map.mapSize || 12800;
@@ -1640,6 +1724,11 @@
                         if (isMapInitialized) {
                             initTacticalMap(lastMapName, lastMapSize);
                             updateTacticalMap(serveur.map.players, serveur.map.bases);
+                            
+                            const activeSubTab = document.querySelector('.admin-tab-link.active')?.getAttribute('data-admin-tab');
+                            if (activeSubTab === 'admin-map') {
+                                updateHeatmap(activeSessionId);
+                            }
                         }
                     }
 
@@ -2360,6 +2449,50 @@
                     chargerWatchlist();
                 }
             });
+        });
+
+        // Toggle Heatmap Button Listener
+        document.getElementById('btn-toggle-heatmap')?.addEventListener('click', () => {
+            showHeatmap = !showHeatmap;
+            const btn = document.getElementById('btn-toggle-heatmap');
+            if (btn) {
+                if (showHeatmap) {
+                    btn.textContent = "Masquer la Heatmap 🛑";
+                    btn.style.background = "rgba(46, 204, 113, 0.2)";
+                    btn.style.borderColor = "#2ecc71";
+                    btn.style.color = "#2ecc71";
+                    updateHeatmap(activeSessionId);
+                } else {
+                    btn.textContent = "Afficher la Heatmap 💥";
+                    btn.style.background = "rgba(231, 76, 60, 0.2)";
+                    btn.style.borderColor = "#e74c3c";
+                    btn.style.color = "#e74c3c";
+                    if (heatLayer && map) {
+                        map.removeLayer(heatLayer);
+                        heatLayer = null;
+                    }
+                }
+            }
+        });
+
+        // Toggle Players Button Listener
+        document.getElementById('btn-toggle-markers')?.addEventListener('click', () => {
+            showMarkers = !showMarkers;
+            const btn = document.getElementById('btn-toggle-markers');
+            if (btn) {
+                if (showMarkers) {
+                    btn.textContent = "Masquer les Joueurs 👥";
+                    btn.style.background = "rgba(52, 152, 219, 0.2)";
+                    btn.style.borderColor = "#3498db";
+                    btn.style.color = "#3498db";
+                } else {
+                    btn.textContent = "Afficher les Joueurs 👥";
+                    btn.style.background = "rgba(241, 196, 15, 0.2)";
+                    btn.style.borderColor = "#f1c40f";
+                    btn.style.color = "#f1c40f";
+                }
+            }
+            actualiserDashboard();
         });
 
         setInterval(actualiserDashboard, 2000);
