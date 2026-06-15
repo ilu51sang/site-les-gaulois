@@ -1378,40 +1378,45 @@
                     }
                 }
 
-                // 5. MISE À JOUR DU LEADERBOARD PUBLIC
+                // 5. MISE À JOUR DU LEADERBOARD PUBLIC (Optimisé & limité au Top 100)
                 const zoneLeaderboard = document.getElementById('leaderboard-body');
-                zoneLeaderboard.innerHTML = '';
-                
-                const joueursTries = Object.keys(classement).map(nom => {
-                    return { nom: nom, ...classement[nom] };
-                }).sort((a, b) => b.kills - a.kills);
+                if (zoneLeaderboard) {
+                    zoneLeaderboard.innerHTML = '';
+                    
+                    const joueursTries = Object.keys(classement).map(nom => {
+                        return { nom: nom, ...classement[nom] };
+                    }).sort((a, b) => b.kills - a.kills);
 
-                if (joueursTries.length === 0) {
-                    zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune donnée de combat enregistrée.</td></tr>';
-                } else {
-                    joueursTries.forEach((joueur, index) => {
-                        const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
-                        const playtimeFormatted = formaterTempsJeu(joueur.playtime);
-                        const couronne = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `<span style="color:#777;">#${index + 1}</span> `;
-                        
-                        const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
-                        const nameCell = isAdmin 
-                            ? `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`
-                            : `<td style="font-weight: bold; color: white;">${joueur.nom}</td>`;
+                    if (joueursTries.length === 0) {
+                        zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucune donnée de combat enregistrée.</td></tr>';
+                    } else {
+                        const top100 = joueursTries.slice(0, 100);
+                        let leaderboardHtml = '';
+                        top100.forEach((joueur, index) => {
+                            const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
+                            const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                            const couronne = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `<span style="color:#777;">#${index + 1}</span> `;
+                            
+                            const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
+                            const nameCell = isAdmin 
+                                ? `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`
+                                : `<td style="font-weight: bold; color: white;">${joueur.nom}</td>`;
 
-                        zoneLeaderboard.innerHTML += `
-                            <tr>
-                                <td style="font-weight: bold;">${couronne}</td>
-                                ${nameCell}
-                                <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
-                                <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
-                                <td style="color: #e74c3c;">${joueur.morts}</td>
-                                <td style="color: #3498db; font-weight: bold;">${ratio}</td>
-                                <td style="color: #f39c12; font-weight: bold;">${joueur.captures || 0}</td>
-                                <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed || 0}</td>
-                            </tr>
-                        `;
-                    });
+                            leaderboardHtml += `
+                                <tr>
+                                    <td style="font-weight: bold;">${couronne}</td>
+                                    ${nameCell}
+                                    <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
+                                    <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
+                                    <td style="color: #e74c3c;">${joueur.morts}</td>
+                                    <td style="color: #3498db; font-weight: bold;">${ratio}</td>
+                                    <td style="color: #f39c12; font-weight: bold;">${joueur.captures || 0}</td>
+                                    <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed || 0}</td>
+                                </tr>
+                            `;
+                        });
+                        zoneLeaderboard.innerHTML = leaderboardHtml;
+                    }
                 }
 
                 // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN & GRAPHIQUE TOP JOUEURS
@@ -1478,6 +1483,7 @@
                         if (filteredJoueurs.length === 0) {
                             zoneAnalysis.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucun opérateur correspondant.</td></tr>';
                         } else {
+                            let analysisHtml = '';
                             filteredJoueurs.forEach(joueur => {
                                 const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
                                 const playtimeFormatted = formaterTempsJeu(joueur.playtime);
@@ -1487,7 +1493,7 @@
                                     tkStyle = "color: #e74c3c; font-weight: bold; text-shadow: 0 0 5px rgba(231,76,60,0.5);";
                                 }
                                 
-                                zoneAnalysis.innerHTML += `
+                                analysisHtml += `
                                     <tr>
                                         <td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>
                                         <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
@@ -1503,6 +1509,7 @@
                                     </tr>
                                 `;
                             });
+                            zoneAnalysis.innerHTML = analysisHtml;
                         }
                     }
 
