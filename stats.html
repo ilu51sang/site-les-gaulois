@@ -888,8 +888,6 @@
                 initDashboardCharts();
                 actualiserMetricsDashboard();
                 actualiserLogsHistorique();
-                
-                initTacticalMap(mapName, mapSize);
             } else {
                 mapAuthContainer.style.display = 'block';
                 mapLiveContainer.style.display = 'none';
@@ -1721,12 +1719,16 @@
                         lastMapName = serveur.map.mapName || "Eden";
                         lastMapSize = serveur.map.mapSize || 12800;
 
-                        if (isMapInitialized) {
-                            initTacticalMap(lastMapName, lastMapSize);
+                        const activeSubTab = document.querySelector('.admin-tab-link.active')?.getAttribute('data-admin-tab');
+                        if (activeSubTab === 'admin-map') {
+                            if (!isMapInitialized) {
+                                initTacticalMap(lastMapName, lastMapSize);
+                                setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+                            } else {
+                                initTacticalMap(lastMapName, lastMapSize);
+                            }
                             updateTacticalMap(serveur.map.players, serveur.map.bases);
-                            
-                            const activeSubTab = document.querySelector('.admin-tab-link.active')?.getAttribute('data-admin-tab');
-                            if (activeSubTab === 'admin-map') {
+                            if (showHeatmap) {
                                 updateHeatmap(activeSessionId);
                             }
                         }
