@@ -263,6 +263,7 @@
                 
                 <div class="rules-tabs" style="margin-bottom: 40px;">
                     <button class="tab-link active" data-tab="tab-leaderboard">🏆 Classement Général</button>
+                    <button class="tab-link" data-tab="tab-weekly-leaderboard">⚡ Classement Hebdo</button>
                     <button class="tab-link" data-tab="tab-sessions">📜 Historique des Parties</button>
                     <button class="tab-link" data-tab="tab-admin-portal">🛡️ Espace Administrateur</button>
                 </div>
@@ -298,6 +299,41 @@
                             <button class="btn-pagination" id="btn-leaderboard-prev" disabled>Précédent</button>
                             <span id="leaderboard-page-info" style="color: #aaa; font-weight: bold; min-width: 120px; text-align: center;">Page 1 sur 1</span>
                             <button class="btn-pagination" id="btn-leaderboard-next" disabled>Suivant</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.5. ONGLET PUBLIC : CLASSEMENT HEBDOMADAIRE -->
+                <div id="tab-weekly-leaderboard" class="rules-content">
+                    <div class="leaderboard-section" style="margin-top: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid rgba(52, 152, 219, 0.3); padding-bottom: 15px;">
+                            <h3 class="panel-title" style="margin: 0; border: none; padding: 0; color: #3498db;">⚡ CLASSEMENT HEBDOMADAIRE (7 DERNIERS JOURS GLISSANTS)</h3>
+                            <input type="text" id="weekly-leaderboard-search" placeholder="Rechercher un joueur..." style="padding: 10px 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; width: 280px; font-family: inherit; font-size: 0.95rem; outline: none; transition: all 0.3s;">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rang</th>
+                                        <th>Opérateur</th>
+                                        <th style="color: #f1c40f;">Temps de jeu 🕒</th>
+                                        <th style="color: #2ecc71;">Kills 🔫</th>
+                                        <th style="color: #e74c3c;">Morts 💀</th>
+                                        <th style="color: #3498db;">Ratio K/D</th>
+                                        <th style="color: #f39c12;">Captures 🚩</th>
+                                        <th style="color: #9b59b6;">Véh. Perdus 🚗</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="weekly-leaderboard-body">
+                                    <tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Chargement...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <div id="weekly-leaderboard-pagination" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+                            <button class="btn-pagination" id="btn-weekly-prev" disabled>Précédent</button>
+                            <span id="weekly-page-info" style="color: #aaa; font-weight: bold; min-width: 120px; text-align: center;">Page 1 sur 1</span>
+                            <button class="btn-pagination" id="btn-weekly-next" disabled>Suivant</button>
                         </div>
                     </div>
                 </div>
@@ -761,6 +797,72 @@
         </div>
     </div>
 
+    <!-- MODAL FICHE JOUEUR PUBLIQUE -->
+    <div id="public-player-profile-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
+        <div style="max-width: 750px; margin: 40px auto; padding: 30px; background: linear-gradient(135deg, rgba(20, 20, 35, 0.98), rgba(10, 10, 20, 0.98)); border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-family: inherit;">
+            <button id="btn-close-public-profile" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #e74c3c; font-size: 1.5rem; cursor: pointer; font-weight: bold; transition: color 0.2s;">✕</button>
+            
+            <!-- En-tête de la carte militaire -->
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
+                <div id="public-profile-grade-icon" style="font-size: 3.5rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); min-width: 70px; text-align: center;">🪖</div>
+                <div>
+                    <h2 id="public-profile-player-name" style="margin: 0; color: #fff; font-size: 1.8rem; letter-spacing: 1px;">🪖 JOUEUR</h2>
+                    <p id="public-profile-grade-name" style="margin: 5px 0 0 0; color: #3498db; font-weight: bold; font-size: 1.1rem; text-transform: uppercase;">GRADE MILITAIRE</p>
+                </div>
+            </div>
+
+            <!-- Grille de statistiques principales -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 25px;">
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">Temps de combat</div>
+                    <div id="public-profile-playtime" style="font-size: 1.3rem; font-weight: bold; color: #f1c40f;">0h 0m</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">Éliminations</div>
+                    <div id="public-profile-kills" style="font-size: 1.3rem; font-weight: bold; color: #2ecc71;">0</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">Pertes</div>
+                    <div id="public-profile-deaths" style="font-size: 1.3rem; font-weight: bold; color: #e74c3c;">0</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">Ratio K/D</div>
+                    <div id="public-profile-ratio" style="font-size: 1.3rem; font-weight: bold; color: #3498db;">0.00</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">Captures</div>
+                    <div id="public-profile-captures" style="font-size: 1.3rem; font-weight: bold; color: #e67e22;">0</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; flex-wrap: wrap;">
+                <!-- Armes Favorites -->
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color: #f1c40f; font-size: 1.05rem; margin: 0 0 15px 0; border-bottom: 1px solid rgba(241,196,15,0.2); padding-bottom: 8px;">🔫 ARMES FAVORITES (KILLS)</h3>
+                    <div id="public-profile-weapons" style="display: flex; flex-direction: column; gap: 10px;">
+                        <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune élimination enregistrée.</p>
+                    </div>
+                </div>
+                
+                <!-- Titres & Badges -->
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color: #2ecc71; font-size: 1.05rem; margin: 0 0 15px 0; border-bottom: 1px solid rgba(46,204,113,0.2); padding-bottom: 8px;">🎖️ BADGES HONORIFIQUES</h3>
+                    <div id="public-profile-badges" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucun badge obtenu pour le moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activités Récentes -->
+            <div>
+                <h3 style="color: #3498db; font-size: 1.05rem; margin: 0 0 12px 0; border-bottom: 1px solid rgba(52,152,219,0.2); padding-bottom: 8px;">📋 JOURNAL DE COMBAT</h3>
+                <div id="public-profile-activities" style="max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; border: 1px solid rgba(255,255,255,0.03);">
+                    <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune activité récente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL VUE GLOBALE SESSION / HISTORIQUE PARTIE -->
     <div id="session-details-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
         <div style="max-width: 900px; margin: 40px auto; padding: 30px; background: rgba(20, 20, 30, 0.95); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); position: relative;">
@@ -878,6 +980,12 @@
         const leaderboardItemsPerPage = 20;
         let leaderboardSearchQuery = "";
         let globalLeaderboardData = [];
+
+        // Variables de pagination et recherche pour le classement hebdomadaire public
+        let weeklyCurrentPage = 1;
+        const weeklyItemsPerPage = 20;
+        let weeklySearchQuery = "";
+        let globalWeeklyData = [];
 
         function checkMapAuth(mapName, mapSize) {
             if (sessionStorage.getItem('admin_logged') === 'true') {
@@ -1456,6 +1564,8 @@
                     checkMapAuth(lastMapName, lastMapSize);
                 } else if (targetTab === 'tab-sessions') {
                     actualiserSessions();
+                } else if (targetTab === 'tab-weekly-leaderboard') {
+                    actualiserWeeklyLeaderboard();
                 }
             });
         });
@@ -1616,6 +1726,7 @@
                 // 5. MISE À JOUR DU LEADERBOARD PUBLIC (Optimisé, Pagina & Filtré)
                 globalLeaderboardData = joueursTries;
                 afficherLeaderboardPublic();
+                actualiserWeeklyLeaderboard();
 
                 // 5b. MISE À JOUR DU TABLEAU ANALYSE ADMIN & GRAPHIQUE TOP JOUEURS
                 if (sessionStorage.getItem('admin_logged') === 'true') {
@@ -1754,6 +1865,96 @@
             }
         }
 
+        async function actualiserWeeklyLeaderboard() {
+            try {
+                const reponse = await fetch(`${API_URL}/api/leaderboard/weekly`);
+                const weeklyRaw = await reponse.json();
+                
+                // Formater les données
+                globalWeeklyData = weeklyRaw.map(joueur => ({
+                    nom: joueur.player_name,
+                    kills: joueur.kills,
+                    morts: joueur.deaths,
+                    teamkills: joueur.teamkills,
+                    captures: joueur.captures,
+                    vehicles_destroyed: joueur.vehicles_destroyed,
+                    playtime: joueur.playtime
+                }));
+                
+                afficherWeeklyLeaderboard();
+            } catch (err) {
+                console.error("Erreur lors de l'actualisation du classement hebdo :", err);
+            }
+        }
+
+        function afficherWeeklyLeaderboard() {
+            const zoneLeaderboard = document.getElementById('weekly-leaderboard-body');
+            if (!zoneLeaderboard) return;
+
+            // Filtrage par recherche
+            let dataFiltree = globalWeeklyData;
+            if (weeklySearchQuery) {
+                dataFiltree = globalWeeklyData.filter(j => 
+                    j.nom.toLowerCase().includes(weeklySearchQuery)
+                );
+            }
+
+            const btnPrev = document.getElementById('btn-weekly-prev');
+            const btnNext = document.getElementById('btn-weekly-next');
+            const pageInfo = document.getElementById('weekly-page-info');
+
+            if (dataFiltree.length === 0) {
+                zoneLeaderboard.innerHTML = '<tr><td colspan="8" style="text-align:center; color: rgba(255,255,255,0.4); font-style:italic;">Aucun joueur correspondant.</td></tr>';
+                if (btnPrev) btnPrev.disabled = true;
+                if (btnNext) btnNext.disabled = true;
+                if (pageInfo) pageInfo.textContent = "Page 1 sur 1";
+                return;
+            }
+
+            const totalItems = dataFiltree.length;
+            const totalPages = Math.ceil(totalItems / weeklyItemsPerPage);
+
+            if (weeklyCurrentPage > totalPages) {
+                weeklyCurrentPage = totalPages;
+            }
+            if (weeklyCurrentPage < 1) {
+                weeklyCurrentPage = 1;
+            }
+
+            const startIndex = (weeklyCurrentPage - 1) * weeklyItemsPerPage;
+            const endIndex = Math.min(startIndex + weeklyItemsPerPage, totalItems);
+            const pageData = dataFiltree.slice(startIndex, endIndex);
+
+            let html = '';
+            pageData.forEach((joueur, i) => {
+                const indexAbsolu = globalWeeklyData.findIndex(j => j.nom === joueur.nom);
+                const rang = indexAbsolu !== -1 ? indexAbsolu : (startIndex + i);
+                
+                const ratio = joueur.morts > 0 ? (joueur.kills / joueur.morts).toFixed(2) : joueur.kills.toFixed(2);
+                const playtimeFormatted = formaterTempsJeu(joueur.playtime);
+                const couronne = rang === 0 ? "🥇 " : rang === 1 ? "🥈 " : rang === 2 ? "🥉 " : `<span style="color:#777;">#${rang + 1}</span> `;
+                
+                html += `
+                    <tr>
+                        <td style="font-weight: bold;">${couronne}</td>
+                        <td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueurPublique('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>
+                        <td style="color: #f1c40f; font-weight: bold;">${playtimeFormatted}</td>
+                        <td style="color: #2ecc71; font-weight: bold;">${joueur.kills}</td>
+                        <td style="color: #e74c3c;">${joueur.morts}</td>
+                        <td style="color: #3498db; font-weight: bold;">${ratio}</td>
+                        <td style="color: #f39c12; font-weight: bold;">${joueur.captures}</td>
+                        <td style="color: #9b59b6; font-weight: bold;">${joueur.vehicles_destroyed}</td>
+                    </tr>
+                `;
+            });
+
+            zoneLeaderboard.innerHTML = html;
+
+            if (btnPrev) btnPrev.disabled = weeklyCurrentPage === 1;
+            if (btnNext) btnNext.disabled = weeklyCurrentPage === totalPages;
+            if (pageInfo) pageInfo.textContent = `Page ${weeklyCurrentPage} sur ${totalPages}`;
+        }
+
         // --- AFFICHAGE PAGINÉ ET FILTRÉ DU LEADERBOARD PUBLIC ---
         function afficherLeaderboardPublic() {
             const zoneLeaderboard = document.getElementById('leaderboard-body');
@@ -1808,7 +2009,7 @@
                 const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
                 const nameCell = isAdmin 
                     ? `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueur('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`
-                    : `<td style="font-weight: bold; color: white;">${joueur.nom}</td>`;
+                    : `<td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="ouvrirFicheJoueurPublique('${joueur.nom.replace(/'/g, "\\'")}')">${joueur.nom}</td>`;
 
                 leaderboardHtml += `
                     <tr>
@@ -2092,6 +2293,34 @@
             }
         });
 
+        // Événements pour le classement hebdomadaire public (recherche et pagination)
+        document.getElementById('weekly-leaderboard-search')?.addEventListener('input', (e) => {
+            weeklySearchQuery = e.target.value.toLowerCase().trim();
+            weeklyCurrentPage = 1;
+            afficherWeeklyLeaderboard();
+        });
+
+        document.getElementById('btn-weekly-prev')?.addEventListener('click', () => {
+            if (weeklyCurrentPage > 1) {
+                weeklyCurrentPage--;
+                afficherWeeklyLeaderboard();
+            }
+        });
+
+        document.getElementById('btn-weekly-next')?.addEventListener('click', () => {
+            let dataFiltree = globalWeeklyData;
+            if (weeklySearchQuery) {
+                dataFiltree = globalWeeklyData.filter(j => 
+                    j.nom.toLowerCase().includes(weeklySearchQuery)
+                );
+            }
+            const totalPages = Math.ceil(dataFiltree.length / weeklyItemsPerPage);
+            if (weeklyCurrentPage < totalPages) {
+                weeklyCurrentPage++;
+                afficherWeeklyLeaderboard();
+            }
+        });
+
         // ========== V3: FONCTIONS FICHE JOUEUR ==========
         let currentProfilePlayer = null;
 
@@ -2201,6 +2430,110 @@
             }
         });
 
+        // ========== PUBLIC PROFILE MODAL FUNCTIONS ==========
+        async function ouvrirFicheJoueurPublique(playerName) {
+            const modal = document.getElementById('public-player-profile-modal');
+            if (!modal) return;
+            modal.style.display = 'block';
+            
+            document.getElementById('public-profile-player-name').textContent = `🪖 ${playerName}`;
+            document.getElementById('public-profile-grade-icon').textContent = '🪖';
+            document.getElementById('public-profile-grade-name').textContent = 'Chargement du grade...';
+            document.getElementById('public-profile-playtime').textContent = '0h 0m';
+            document.getElementById('public-profile-kills').textContent = '0';
+            document.getElementById('public-profile-deaths').textContent = '0';
+            document.getElementById('public-profile-ratio').textContent = '0.00';
+            document.getElementById('public-profile-captures').textContent = '0';
+            document.getElementById('public-profile-weapons').innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Chargement...</p>';
+            document.getElementById('public-profile-badges').innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Chargement...</p>';
+            document.getElementById('public-profile-activities').innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Chargement...</p>';
+
+            try {
+                const res = await fetch(`${API_URL}/api/players/${encodeURIComponent(playerName)}`);
+                if (!res.ok) throw new Error('Erreur API');
+                const data = await res.json();
+
+                // Stats
+                const stats = data.stats || {};
+                document.getElementById('public-profile-playtime').textContent = formaterTempsJeu(stats.playtime || 0);
+                document.getElementById('public-profile-kills').textContent = stats.kills || 0;
+                document.getElementById('public-profile-deaths').textContent = stats.deaths || 0;
+                const ratio = stats.deaths > 0 ? (stats.kills / stats.deaths).toFixed(2) : stats.kills.toFixed(2);
+                document.getElementById('public-profile-ratio').textContent = ratio;
+                document.getElementById('public-profile-captures').textContent = stats.captures || 0;
+
+                // Grade
+                document.getElementById('public-profile-grade-icon').textContent = data.gradeIcon || '🪖';
+                document.getElementById('public-profile-grade-name').textContent = data.grade || 'Soldat';
+
+                // Badges
+                const badgesDiv = document.getElementById('public-profile-badges');
+                if (data.badges && data.badges.length > 0) {
+                    badgesDiv.innerHTML = data.badges.map(b => `
+                        <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); padding: 8px 12px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 100px; text-align: center; cursor: help;" title="${b.desc}">
+                            <span style="font-size: 1.4rem;">${b.icon}</span>
+                            <span style="color: #fff; font-size: 0.75rem; font-weight: bold; white-space: nowrap;">${b.name}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    badgesDiv.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucun badge obtenu pour le moment.</p>';
+                }
+
+                // Armes
+                const weaponsDiv = document.getElementById('public-profile-weapons');
+                if (data.favoriteWeapons && data.favoriteWeapons.length > 0) {
+                    weaponsDiv.innerHTML = data.favoriteWeapons.map((w, index) => {
+                        const rankEmoji = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
+                        return `
+                            <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: rgba(255,255,255,0.02); border-radius: 4px; border-left: 2px solid #f1c40f;">
+                                <span style="color: #eee; font-size: 0.85rem;">${rankEmoji} ${w.name}</span>
+                                <span style="color: #f1c40f; font-weight: bold; font-size: 0.85rem;">${w.kills} Kills</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    weaponsDiv.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune élimination enregistrée.</p>';
+                }
+
+                // Activités
+                const activitiesDiv = document.getElementById('public-profile-activities');
+                if (data.recentActivities && data.recentActivities.length > 0) {
+                    activitiesDiv.innerHTML = data.recentActivities.map(act => {
+                        const dateStr = new Date(act.created_at).toLocaleString('fr-FR');
+                        let badgeColor = "rgba(255,255,255,0.1)";
+                        if (act.event_type === "kill") badgeColor = "rgba(52, 152, 219, 0.3)";
+                        else if (act.event_type === "teamkill") badgeColor = "rgba(230, 126, 34, 0.3)";
+                        else if (act.event_type === "capture") badgeColor = "rgba(46, 204, 113, 0.3)";
+                        else if (act.event_type === "vehicle_destroyed") badgeColor = "rgba(155, 89, 182, 0.3)";
+                        
+                        return `
+                            <div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #666; font-size: 0.75rem; white-space: nowrap;">${dateStr}</span>
+                                <span style="padding: 2px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: bold; background: ${badgeColor}; color: #fff; text-transform: uppercase; white-space: nowrap;">${act.event_type}</span>
+                                <span style="color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${act.details}</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    activitiesDiv.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune activité récente.</p>';
+                }
+
+            } catch (err) {
+                console.error("Erreur chargement profil public:", err);
+                document.getElementById('public-profile-grade-name').textContent = 'Erreur API';
+            }
+        }
+
+        document.getElementById('btn-close-public-profile').addEventListener('click', () => {
+            document.getElementById('public-player-profile-modal').style.display = 'none';
+        });
+
+        document.getElementById('public-player-profile-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'public-player-profile-modal') {
+                document.getElementById('public-player-profile-modal').style.display = 'none';
+            }
+        });
+
         // ========== V3: DETAILS SESSIONS ==========
         async function ouvrirDetailsSession(sessionId, mapName, dateDebut, dateFin, duree, connections, kills, tks) {
             const modal = document.getElementById('session-details-modal');
@@ -2234,9 +2567,12 @@
                 } else {
                     let html = '';
                     players.forEach(p => {
+                        const clickAction = sessionStorage.getItem('admin_logged') === 'true' 
+                            ? `ouvrirFicheJoueur('${p.player_name.replace(/'/g, "\\'")}')` 
+                            : `ouvrirFicheJoueurPublique('${p.player_name.replace(/'/g, "\\'")}')`;
                         html += `
                             <tr>
-                                <td style="font-weight: bold; color: white;">🪖 ${p.player_name}</td>
+                                <td style="font-weight: bold; color: white; cursor: pointer; text-decoration: underline;" onclick="${clickAction}">🪖 ${p.player_name}</td>
                                 <td style="color: #f1c40f; font-weight: bold; font-family: monospace;">${formaterTempsJeu(p.playtime || 0)}</td>
                                 <td style="color: #2ecc71; font-weight: bold;">${p.kills || 0}</td>
                                 <td style="color: #e74c3c; font-weight: bold;">${p.deaths || 0}</td>
