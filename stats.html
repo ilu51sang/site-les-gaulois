@@ -281,15 +281,15 @@
                         <div style="overflow-x: auto;">
                             <table class="leaderboard-table">
                                 <thead>
-                                    <tr>
-                                        <th>Rang</th>
-                                        <th>Opérateur</th>
-                                        <th style="color: #f1c40f;">Temps de jeu 🕒</th>
-                                        <th style="color: #2ecc71;">Kills 🔫</th>
-                                        <th style="color: #e74c3c;">Morts 💀</th>
-                                        <th style="color: #3498db;">Ratio K/D 📊</th>
-                                        <th style="color: #f39c12;">Captures 🚩</th>
-                                        <th style="color: #9b59b6;">Véh. Perdus 💥</th>
+                                    <tr id="leaderboard-headers">
+                                        <th data-sort="rank" style="cursor: pointer;">Rang</th>
+                                        <th data-sort="nom" style="cursor: pointer;">Opérateur</th>
+                                        <th data-sort="playtime" style="cursor: pointer; color: #f1c40f;">Temps de jeu 🕒</th>
+                                        <th data-sort="kills" style="cursor: pointer; color: #2ecc71;">Kills 🔫</th>
+                                        <th data-sort="morts" style="cursor: pointer; color: #e74c3c;">Morts 💀</th>
+                                        <th data-sort="ratio" style="cursor: pointer; color: #3498db;">Ratio K/D 📊</th>
+                                        <th data-sort="captures" style="cursor: pointer; color: #f39c12;">Captures 🚩</th>
+                                        <th data-sort="vehicles_destroyed" style="cursor: pointer; color: #9b59b6;">Véh. Perdus 💥</th>
                                     </tr>
                                 </thead>
                                 <tbody id="leaderboard-body">
@@ -316,15 +316,15 @@
                         <div style="overflow-x: auto;">
                             <table class="leaderboard-table">
                                 <thead>
-                                    <tr>
-                                        <th>Rang</th>
-                                        <th>Opérateur</th>
-                                        <th style="color: #f1c40f;">Temps de jeu 🕒</th>
-                                        <th style="color: #2ecc71;">Kills 🔫</th>
-                                        <th style="color: #e74c3c;">Morts 💀</th>
-                                        <th style="color: #3498db;">Ratio K/D</th>
-                                        <th style="color: #f39c12;">Captures 🚩</th>
-                                        <th style="color: #9b59b6;">Véh. Perdus 🚗</th>
+                                    <tr id="weekly-leaderboard-headers">
+                                        <th data-sort="rank" style="cursor: pointer;">Rang</th>
+                                        <th data-sort="nom" style="cursor: pointer;">Opérateur</th>
+                                        <th data-sort="playtime" style="cursor: pointer; color: #f1c40f;">Temps de jeu 🕒</th>
+                                        <th data-sort="kills" style="cursor: pointer; color: #2ecc71;">Kills 🔫</th>
+                                        <th data-sort="morts" style="cursor: pointer; color: #e74c3c;">Morts 💀</th>
+                                        <th data-sort="ratio" style="cursor: pointer; color: #3498db;">Ratio K/D</th>
+                                        <th data-sort="captures" style="cursor: pointer; color: #f39c12;">Captures 🚩</th>
+                                        <th data-sort="vehicles_destroyed" style="cursor: pointer; color: #9b59b6;">Véh. Perdus 🚗</th>
                                     </tr>
                                 </thead>
                                 <tbody id="weekly-leaderboard-body">
@@ -808,9 +808,14 @@
             <!-- En-tête de la carte militaire -->
             <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
                 <div id="public-profile-grade-icon" style="font-size: 3.5rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); min-width: 70px; text-align: center;">🪖</div>
-                <div>
+                <div style="flex: 1;">
                     <h2 id="public-profile-player-name" style="margin: 0; color: #fff; font-size: 1.8rem; letter-spacing: 1px;">🪖 JOUEUR</h2>
                     <p id="public-profile-grade-name" style="margin: 5px 0 0 0; color: #3498db; font-weight: bold; font-size: 1.1rem; text-transform: uppercase;">GRADE MILITAIRE</p>
+                </div>
+                <div>
+                    <button id="btn-compare-player" style="padding: 10px 18px; background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.3s; outline: none; border-style: solid;">
+                        ⚖️ Comparer
+                    </button>
                 </div>
             </div>
 
@@ -838,19 +843,27 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; flex-wrap: wrap;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-bottom: 25px;">
                 <!-- Armes Favorites -->
-                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: flex-start; height: 260px;">
                     <h3 style="color: #f1c40f; font-size: 1.05rem; margin: 0 0 15px 0; border-bottom: 1px solid rgba(241,196,15,0.2); padding-bottom: 8px;">🔫 ARMES FAVORITES (KILLS)</h3>
-                    <div id="public-profile-weapons" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div id="public-profile-weapons" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1;">
                         <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune élimination enregistrée.</p>
+                    </div>
+                </div>
+
+                <!-- Radar Style de Jeu -->
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; height: 260px;">
+                    <h3 style="color: #3498db; font-size: 1.05rem; margin: 0 0 10px 0; border-bottom: 1px solid rgba(52,152,219,0.2); padding-bottom: 8px; width: 100%; text-align: left;">📊 STYLE DE JEU</h3>
+                    <div style="width: 100%; height: 180px; position: relative; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="public-profile-radar-chart"></canvas>
                     </div>
                 </div>
                 
                 <!-- Titres & Badges -->
-                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: flex-start; height: 260px;">
                     <h3 style="color: #2ecc71; font-size: 1.05rem; margin: 0 0 15px 0; border-bottom: 1px solid rgba(46,204,113,0.2); padding-bottom: 8px;">🎖️ BADGES HONORIFIQUES</h3>
-                    <div id="public-profile-badges" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <div id="public-profile-badges" style="display: flex; flex-wrap: wrap; gap: 8px; overflow-y: auto; flex: 1; align-content: flex-start;">
                         <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucun badge obtenu pour le moment.</p>
                     </div>
                 </div>
@@ -863,6 +876,48 @@
                     <p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune activité récente.</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE COMPARAISON DES OPÉRATEURS -->
+    <div id="player-comparison-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
+        <div style="max-width: 800px; margin: 40px auto; padding: 30px; background: linear-gradient(135deg, rgba(20, 20, 35, 0.98), rgba(10, 10, 20, 0.98)); border-radius: 12px; border: 1px solid rgba(241, 196, 15, 0.2); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-family: inherit;">
+            <button id="btn-close-comparison" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #e74c3c; font-size: 1.5rem; cursor: pointer; font-weight: bold; transition: color 0.2s;">✕</button>
+            
+            <h2 style="margin: 0 0 5px 0; color: #fff; font-size: 1.8rem; text-align: center; letter-spacing: 1px; color: #f1c40f;">⚖️ CONFRONTATION D'OPÉRATEURS</h2>
+            <p style="text-align: center; color: #aaa; margin-bottom: 25px; font-size: 0.95rem;">Comparez les performances en combat de deux Gaulois côte à côte</p>
+
+            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 25px;">
+                <!-- Joueur 1 (Gauche) -->
+                <div style="text-align: center; background: rgba(52, 152, 219, 0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(52, 152, 219, 0.15);">
+                    <div id="comp-p1-grade-icon" style="font-size: 3rem; margin-bottom: 10px;">🪖</div>
+                    <h3 id="comp-p1-name" style="margin: 0; color: #3498db; font-size: 1.4rem;">Opérateur 1</h3>
+                    <p id="comp-p1-grade-name" style="margin: 5px 0 0 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Grade</p>
+                </div>
+
+                <!-- VS Middle -->
+                <div style="font-size: 1.5rem; font-weight: bold; color: #f1c40f; text-shadow: 0 0 10px rgba(241,196,15,0.5); padding: 10px;">VS</div>
+
+                <!-- Joueur 2 (Droite) -->
+                <div style="text-align: center; background: rgba(46, 204, 113, 0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(46, 204, 113, 0.15);">
+                    <div id="comp-p2-grade-icon" style="font-size: 3rem; margin-bottom: 10px;">❓</div>
+                    <select id="comp-p2-select" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; font-family: inherit; font-size: 1.05rem; outline: none; text-align: center; cursor: pointer;">
+                        <option value="">Sélectionner un rival...</option>
+                    </select>
+                    <h3 id="comp-p2-name" style="margin: 0; color: #2ecc71; font-size: 1.4rem; display: none;">Opérateur 2</h3>
+                    <p id="comp-p2-grade-name" style="margin: 5px 0 0 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; display: none;">Grade</p>
+                </div>
+            </div>
+
+            <!-- Grille de Comparaison -->
+            <div id="comp-results-container" style="display: none; flex-direction: column; gap: 18px;">
+                <!-- Les lignes de comparaison seront insérées ici -->
+            </div>
+            
+            <div id="comp-placeholder" style="text-align: center; color: rgba(255,255,255,0.4); font-style: italic; padding: 40px 0;">
+                Choisissez un second opérateur à droite pour lancer la comparaison.
+            </div>
+        </div>
         </div>
     </div>
 
@@ -983,12 +1038,19 @@
         const leaderboardItemsPerPage = 20;
         let leaderboardSearchQuery = "";
         let globalLeaderboardData = [];
+        let leaderboardSortColumn = 'rank';
+        let leaderboardSortDirection = 'asc';
 
         // Variables de pagination et recherche pour le classement hebdomadaire public
         let weeklyCurrentPage = 1;
         const weeklyItemsPerPage = 20;
         let weeklySearchQuery = "";
         let globalWeeklyData = [];
+        let weeklySortColumn = 'rank';
+        let weeklySortDirection = 'asc';
+
+        // Instance globale pour le graphique radar
+        let publicRadarChartInstance = null;
 
         function checkMapAuth(mapName, mapSize) {
             if (sessionStorage.getItem('admin_logged') === 'true') {
@@ -1890,16 +1952,60 @@
             }
         }
 
+        function mettreAJourHeadersWeekly() {
+            document.querySelectorAll('#weekly-leaderboard-headers th').forEach(th => {
+                const sortField = th.getAttribute('data-sort');
+                if (!sortField) return;
+                
+                // Nettoyer l'ancienne flèche s'il y en a une
+                th.innerHTML = th.innerHTML.replace(/ [▲▼]$/, '');
+                
+                if (sortField === weeklySortColumn) {
+                    th.innerHTML += weeklySortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+            });
+        }
+
         function afficherWeeklyLeaderboard() {
             const zoneLeaderboard = document.getElementById('weekly-leaderboard-body');
             if (!zoneLeaderboard) return;
 
             // Filtrage par recherche
-            let dataFiltree = globalWeeklyData;
+            let dataFiltree = [...globalWeeklyData];
             if (weeklySearchQuery) {
                 dataFiltree = globalWeeklyData.filter(j => 
                     j.nom.toLowerCase().includes(weeklySearchQuery)
                 );
+            }
+
+            // Tri des données
+            if (weeklySortColumn) {
+                dataFiltree.sort((a, b) => {
+                    let valA, valB;
+                    
+                    if (weeklySortColumn === 'ratio') {
+                        valA = a.morts > 0 ? a.kills / a.morts : a.kills;
+                        valB = b.morts > 0 ? b.kills / b.morts : b.kills;
+                    } else if (weeklySortColumn === 'rank') {
+                        valA = globalWeeklyData.findIndex(j => j.nom === a.nom);
+                        valB = globalWeeklyData.findIndex(j => j.nom === b.nom);
+                        return weeklySortDirection === 'asc' ? valA - valB : valB - valA;
+                    } else if (weeklySortColumn === 'nom') {
+                        valA = a.nom.toLowerCase();
+                        valB = b.nom.toLowerCase();
+                    } else {
+                        valA = a[weeklySortColumn];
+                        valB = b[weeklySortColumn];
+                    }
+
+                    if (typeof valA === 'string') {
+                        return weeklySortDirection === 'asc' 
+                            ? valA.localeCompare(valB) 
+                            : valB.localeCompare(valA);
+                    } else {
+                        return weeklySortDirection === 'asc' ? valA - valB : valB - valA;
+                    }
+                });
             }
 
             const btnPrev = document.getElementById('btn-weekly-prev');
@@ -1956,6 +2062,23 @@
             if (btnPrev) btnPrev.disabled = weeklyCurrentPage === 1;
             if (btnNext) btnNext.disabled = weeklyCurrentPage === totalPages;
             if (pageInfo) pageInfo.textContent = `Page ${weeklyCurrentPage} sur ${totalPages}`;
+
+            mettreAJourHeadersWeekly();
+        }
+
+        // --- AFFICHAGE PAGINÉ ET FILTRÉ DU LEADERBOARD PUBLIC ---
+        function mettreAJourHeadersLeaderboard() {
+            document.querySelectorAll('#leaderboard-headers th').forEach(th => {
+                const sortField = th.getAttribute('data-sort');
+                if (!sortField) return;
+                
+                // Nettoyer l'ancienne flèche s'il y en a une
+                th.innerHTML = th.innerHTML.replace(/ [▲▼]$/, '');
+                
+                if (sortField === leaderboardSortColumn) {
+                    th.innerHTML += leaderboardSortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+            });
         }
 
         // --- AFFICHAGE PAGINÉ ET FILTRÉ DU LEADERBOARD PUBLIC ---
@@ -1964,11 +2087,41 @@
             if (!zoneLeaderboard) return;
 
             // Filtrage par recherche
-            let dataFiltree = globalLeaderboardData;
+            let dataFiltree = [...globalLeaderboardData];
             if (leaderboardSearchQuery) {
                 dataFiltree = globalLeaderboardData.filter(j => 
                     j.nom.toLowerCase().includes(leaderboardSearchQuery)
                 );
+            }
+
+            // Tri des données
+            if (leaderboardSortColumn) {
+                dataFiltree.sort((a, b) => {
+                    let valA, valB;
+                    
+                    if (leaderboardSortColumn === 'ratio') {
+                        valA = a.morts > 0 ? a.kills / a.morts : a.kills;
+                        valB = b.morts > 0 ? b.kills / b.morts : b.kills;
+                    } else if (leaderboardSortColumn === 'rank') {
+                        valA = globalLeaderboardData.findIndex(j => j.nom === a.nom);
+                        valB = globalLeaderboardData.findIndex(j => j.nom === b.nom);
+                        return leaderboardSortDirection === 'asc' ? valA - valB : valB - valA;
+                    } else if (leaderboardSortColumn === 'nom') {
+                        valA = a.nom.toLowerCase();
+                        valB = b.nom.toLowerCase();
+                    } else {
+                        valA = a[leaderboardSortColumn];
+                        valB = b[leaderboardSortColumn];
+                    }
+
+                    if (typeof valA === 'string') {
+                        return leaderboardSortDirection === 'asc' 
+                            ? valA.localeCompare(valB) 
+                            : valB.localeCompare(valA);
+                    } else {
+                        return leaderboardSortDirection === 'asc' ? valA - valB : valB - valA;
+                    }
+                });
             }
 
             const btnPrev = document.getElementById('btn-leaderboard-prev');
@@ -2031,6 +2184,9 @@
             if (pageInfo) pageInfo.textContent = `Page ${leaderboardCurrentPage} sur ${totalPages}`;
             if (btnPrev) btnPrev.disabled = leaderboardCurrentPage === 1;
             if (btnNext) btnNext.disabled = leaderboardCurrentPage === totalPages;
+            
+            // Mettre à jour les indicateurs visuels des en-têtes
+            mettreAJourHeadersLeaderboard();
         }
 
         // --- RECUPERATION ET RENDU DE L'HISTORIQUE DES SESSIONS ---
@@ -2441,6 +2597,7 @@
 
         // ========== PUBLIC PROFILE MODAL FUNCTIONS ==========
         async function ouvrirFicheJoueurPublique(playerName) {
+            currentProfilePlayer = playerName;
             const modal = document.getElementById('public-player-profile-modal');
             if (!modal) return;
             modal.style.display = 'block';
@@ -2527,6 +2684,83 @@
                     activitiesDiv.innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; margin: 0;">Aucune activité récente.</p>';
                 }
 
+                // --- RADAR CHART GENERATION ---
+                const playtimeHours = Math.max(0.01, (stats.playtime || 0) / 3600);
+                const kdVal = stats.deaths > 0 ? (stats.kills / stats.deaths) : stats.kills;
+
+                // AXES SCORES (0 - 100)
+                const scoreCombat = Math.min(100, Math.round((stats.kills / playtimeHours) * 6.66));
+                const scoreSurvie = Math.min(100, Math.round((kdVal / 3.0) * 100));
+                const scoreTactique = Math.min(100, Math.round(((stats.captures || 0) / playtimeHours) * 33.33));
+                const scoreSupport = Math.min(100, Math.round(((stats.vehicles_destroyed || 0) / playtimeHours) * 100));
+                const totalElims = Math.max(1, stats.kills);
+                const scoreDiscipline = Math.max(0, Math.min(100, Math.round(100 - ((stats.teamkills || 0) / totalElims) * 500)));
+
+                if (publicRadarChartInstance) {
+                    publicRadarChartInstance.destroy();
+                }
+
+                const ctxRadar = document.getElementById('public-profile-radar-chart')?.getContext('2d');
+                if (ctxRadar) {
+                    publicRadarChartInstance = new Chart(ctxRadar, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Combat 🔫', 'Survie 🛡️', 'Tactique 🚩', 'Support 💥', 'Discipline 🤝'],
+                            datasets: [{
+                                label: 'Profil de combat',
+                                data: [scoreCombat, scoreSurvie, scoreTactique, scoreSupport, scoreDiscipline],
+                                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                                borderColor: '#3498db',
+                                pointBackgroundColor: '#3498db',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#3498db',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.label}: ${context.raw}%`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    pointLabels: {
+                                        color: '#aaa',
+                                        font: {
+                                            size: 9,
+                                            weight: 'bold',
+                                            family: 'inherit'
+                                        }
+                                    },
+                                    ticks: {
+                                        display: false,
+                                        stepSize: 25
+                                    },
+                                    min: 0,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                }
+
             } catch (err) {
                 console.error("Erreur chargement profil public:", err);
                 document.getElementById('public-profile-grade-name').textContent = 'Erreur API';
@@ -2541,6 +2775,201 @@
             if (e.target.id === 'public-player-profile-modal') {
                 document.getElementById('public-player-profile-modal').style.display = 'none';
             }
+        });
+
+        // ========== V3.5: COMPARAISON DES OPÉRATEURS & TRI EVENT LISTENERS ==========
+        async function actualiserComparaison(player1Name, player2Name) {
+            if (!player2Name) {
+                document.getElementById('comp-results-container').style.display = 'none';
+                document.getElementById('comp-placeholder').style.display = 'block';
+                document.getElementById('comp-p2-grade-icon').textContent = '❓';
+                document.getElementById('comp-p2-name').style.display = 'none';
+                document.getElementById('comp-p2-grade-name').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('comp-placeholder').innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic; text-align:center;">Analyse satellite des données en cours...</p>';
+            document.getElementById('comp-placeholder').style.display = 'block';
+            document.getElementById('comp-results-container').style.display = 'none';
+
+            try {
+                const [res1, res2] = await Promise.all([
+                    fetch(`${API_URL}/api/players/${encodeURIComponent(player1Name)}`),
+                    fetch(`${API_URL}/api/players/${encodeURIComponent(player2Name)}`)
+                ]);
+
+                if (!res1.ok || !res2.ok) throw new Error("Erreur de liaison API");
+
+                const data1 = await res1.json();
+                const data2 = await res2.json();
+
+                const s1 = data1.stats || {};
+                const s2 = data2.stats || {};
+
+                // Mise à jour de l'en-tête du rival
+                document.getElementById('comp-p2-grade-icon').textContent = data2.gradeIcon || '🪖';
+                document.getElementById('comp-p2-grade-name').textContent = data2.grade || 'Soldat';
+                document.getElementById('comp-p2-name').textContent = player2Name;
+                document.getElementById('comp-p2-name').style.display = 'block';
+                document.getElementById('comp-p2-grade-name').style.display = 'block';
+
+                const r1 = s1.deaths > 0 ? (s1.kills / s1.deaths) : s1.kills;
+                const r2 = s2.deaths > 0 ? (s2.kills / s2.deaths) : s2.kills;
+
+                const metrics = [
+                    { label: "Temps de combat 🕒", val1: s1.playtime || 0, val2: s2.playtime || 0, disp1: formaterTempsJeu(s1.playtime || 0), disp2: formaterTempsJeu(s2.playtime || 0), lowerIsBetter: false },
+                    { label: "Éliminations 🔫", val1: s1.kills || 0, val2: s2.kills || 0, disp1: s1.kills || 0, disp2: s2.kills || 0, lowerIsBetter: false },
+                    { label: "Pertes 💀", val1: s1.deaths || 0, val2: s2.deaths || 0, disp1: s1.deaths || 0, disp2: s2.deaths || 0, lowerIsBetter: true },
+                    { label: "Ratio K/D 📊", val1: r1, val2: r2, disp1: r1.toFixed(2), disp2: r2.toFixed(2), lowerIsBetter: false },
+                    { label: "Captures 🚩", val1: s1.captures || 0, val2: s2.captures || 0, disp1: s1.captures || 0, disp2: s2.captures || 0, lowerIsBetter: false },
+                    { label: "Véh. Perdus 💥", val1: s1.vehicles_destroyed || 0, val2: s2.vehicles_destroyed || 0, disp1: s1.vehicles_destroyed || 0, disp2: s2.vehicles_destroyed || 0, lowerIsBetter: true },
+                    { label: "Tirs Fratricides (TK) ⚠️", val1: s1.teamkills || 0, val2: s2.teamkills || 0, disp1: s1.teamkills || 0, disp2: s2.teamkills || 0, lowerIsBetter: true },
+                    { label: "Arme Favorite 🔫", val1: null, val2: null, disp1: data1.favoriteWeapons?.[0]?.name || "N/A", disp2: data2.favoriteWeapons?.[0]?.name || "N/A" },
+                    { label: "Badges obtenus 🎖️", val1: data1.badges?.length || 0, val2: data2.badges?.length || 0, disp1: data1.badges?.length || 0, disp2: data2.badges?.length || 0, lowerIsBetter: false }
+                ];
+
+                let html = '';
+                metrics.forEach(m => {
+                    let leftShare = 50;
+                    let rightShare = 50;
+                    
+                    let highlightLeft = '';
+                    let highlightRight = '';
+
+                    if (m.val1 !== null && m.val2 !== null) {
+                        const total = m.val1 + m.val2;
+                        if (total > 0) {
+                            leftShare = (m.val1 / total) * 100;
+                            rightShare = (m.val2 / total) * 100;
+                        }
+                        
+                        const isLeftBetter = m.lowerIsBetter ? (m.val1 < m.val2) : (m.val1 > m.val2);
+                        const isRightBetter = m.lowerIsBetter ? (m.val2 < m.val1) : (m.val2 > m.val1);
+
+                        if (m.val1 !== m.val2) {
+                            if (isLeftBetter) highlightLeft = 'color: #3498db; font-weight: bold; font-size: 1.15rem;';
+                            if (isRightBetter) highlightRight = 'color: #2ecc71; font-weight: bold; font-size: 1.15rem;';
+                        }
+                    }
+
+                    html += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; text-align: center; margin-bottom: 8px;">
+                                <div style="${highlightLeft} text-align: left; font-family: monospace;">${m.disp1}</div>
+                                <div style="color: #aaa; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">${m.label}</div>
+                                <div style="${highlightRight} text-align: right; font-family: monospace;">${m.disp2}</div>
+                            </div>
+                    `;
+
+                    if (m.val1 !== null && m.val2 !== null) {
+                        html += `
+                            <div style="display: flex; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; width: 100%;">
+                                <div style="width: ${leftShare}%; background: #3498db; transition: width 0.5s ease;"></div>
+                                <div style="width: ${rightShare}%; background: #2ecc71; transition: width 0.5s ease;"></div>
+                            </div>
+                        `;
+                    }
+
+                    html += `</div>`;
+                });
+
+                document.getElementById('comp-placeholder').style.display = 'none';
+                document.getElementById('comp-results-container').innerHTML = html;
+                document.getElementById('comp-results-container').style.display = 'flex';
+
+            } catch (err) {
+                console.error("Erreur lors de la comparaison :", err);
+                document.getElementById('comp-placeholder').innerHTML = '<p style="color: #e74c3c; font-style: italic; text-align:center;">Erreur lors du décodage satellite des profils.</p>';
+            }
+        }
+
+        // Ecouteurs de tri pour le classement général
+        document.querySelectorAll('#leaderboard-headers th').forEach(th => {
+            th.addEventListener('click', () => {
+                const sortField = th.getAttribute('data-sort');
+                if (!sortField) return;
+                
+                if (leaderboardSortColumn === sortField) {
+                    leaderboardSortDirection = leaderboardSortDirection === 'desc' ? 'asc' : 'desc';
+                } else {
+                    leaderboardSortColumn = sortField;
+                    leaderboardSortDirection = 'desc'; // Statistique -> par défaut décroissant
+                    if (sortField === 'nom' || sortField === 'rank') {
+                        leaderboardSortDirection = 'asc';
+                    }
+                }
+                leaderboardCurrentPage = 1;
+                afficherLeaderboardPublic();
+            });
+        });
+
+        // Ecouteurs de tri pour le classement hebdomadaire
+        document.querySelectorAll('#weekly-leaderboard-headers th').forEach(th => {
+            th.addEventListener('click', () => {
+                const sortField = th.getAttribute('data-sort');
+                if (!sortField) return;
+                
+                if (weeklySortColumn === sortField) {
+                    weeklySortDirection = weeklySortDirection === 'desc' ? 'asc' : 'desc';
+                } else {
+                    weeklySortColumn = sortField;
+                    weeklySortDirection = 'desc';
+                    if (sortField === 'nom' || sortField === 'rank') {
+                        weeklySortDirection = 'asc';
+                    }
+                }
+                weeklyCurrentPage = 1;
+                afficherWeeklyLeaderboard();
+            });
+        });
+
+        // Ecouteurs d'événements pour le modal de comparaison
+        document.getElementById('btn-compare-player')?.addEventListener('click', () => {
+            document.getElementById('public-player-profile-modal').style.display = 'none';
+            const compModal = document.getElementById('player-comparison-modal');
+            if (compModal) {
+                compModal.style.display = 'block';
+                
+                // Configurer le joueur 1 (gauche)
+                document.getElementById('comp-p1-grade-icon').textContent = document.getElementById('public-profile-grade-icon').textContent;
+                document.getElementById('comp-p1-grade-name').textContent = document.getElementById('public-profile-grade-name').textContent;
+                document.getElementById('comp-p1-name').textContent = currentProfilePlayer;
+                
+                // Peupler le sélecteur de rival (droite)
+                const selectEl = document.getElementById('comp-p2-select');
+                if (selectEl) {
+                    selectEl.innerHTML = '<option value="">Sélectionner un rival...</option>';
+                    globalLeaderboardData.forEach(p => {
+                        if (p.nom !== currentProfilePlayer) {
+                            selectEl.innerHTML += `<option value="${p.nom.replace(/"/g, '&quot;')}">${p.nom}</option>`;
+                        }
+                    });
+                }
+                
+                // Réinitialiser le panneau de résultat
+                document.getElementById('comp-results-container').style.display = 'none';
+                document.getElementById('comp-p2-name').style.display = 'none';
+                document.getElementById('comp-p2-grade-name').style.display = 'none';
+                document.getElementById('comp-p2-grade-icon').textContent = '❓';
+                document.getElementById('comp-placeholder').style.display = 'block';
+                document.getElementById('comp-placeholder').innerHTML = 'Choisissez un second opérateur à droite pour lancer la comparaison.';
+            }
+        });
+
+        document.getElementById('btn-close-comparison')?.addEventListener('click', () => {
+            document.getElementById('player-comparison-modal').style.display = 'none';
+            ouvrirFicheJoueurPublique(currentProfilePlayer);
+        });
+
+        document.getElementById('player-comparison-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'player-comparison-modal') {
+                document.getElementById('player-comparison-modal').style.display = 'none';
+                ouvrirFicheJoueurPublique(currentProfilePlayer);
+            }
+        });
+
+        document.getElementById('comp-p2-select')?.addEventListener('change', (e) => {
+            actualiserComparaison(currentProfilePlayer, e.target.value);
         });
 
         // ========== V3: DETAILS SESSIONS ==========
