@@ -988,7 +988,7 @@
 
             if (bases && Array.isArray(bases)) {
                 bases.forEach(base => {
-                    const lat = parseFloat(base.y);
+                    const lat = currentMapSize - parseFloat(base.y);
                     const lng = parseFloat(base.x);
                     if (isNaN(lat) || isNaN(lng)) return;
 
@@ -1014,7 +1014,7 @@
 
             if (players && Array.isArray(players) && showMarkers) {
                 players.forEach(player => {
-                    const lat = parseFloat(player.y);
+                    const lat = currentMapSize - parseFloat(player.y);
                     const lng = parseFloat(player.x);
                     if (isNaN(lat) || isNaN(lng)) return;
 
@@ -1077,7 +1077,7 @@
                         // Extraire les coordonnées depuis details (ex: "A éliminé Dizzy (M16) @ 2450.5,6120.3")
                         const coordMatch = log.details.match(/@\s*([0-9.]+)\s*,\s*([0-9.]+)/);
                         if (coordMatch) {
-                            const lat = parseFloat(coordMatch[2]); // Z (y axis)
+                            const lat = currentMapSize - parseFloat(coordMatch[2]); // Z (y axis)
                             const lng = parseFloat(coordMatch[1]); // X (x axis)
                             if (!isNaN(lat) && !isNaN(lng)) {
                                 heatPoints.push([lat, lng, 1.0]); 
