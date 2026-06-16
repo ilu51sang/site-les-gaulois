@@ -739,7 +739,12 @@
     <div id="player-profile-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
         <div style="max-width: 800px; margin: 40px auto; padding: 30px; background: rgba(20, 20, 30, 0.95); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); position: relative;">
             <button id="btn-close-profile" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #e74c3c; font-size: 1.5rem; cursor: pointer; font-weight: bold;">✕</button>
-            <h2 id="profile-player-name" style="margin: 0 0 5px 0; color: #fff; font-size: 1.6rem;">🪖 Joueur</h2>
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                <h2 id="profile-player-name" style="margin: 0; color: #fff; font-size: 1.6rem;">🪖 Joueur</h2>
+                <button id="btn-back-to-public" style="padding: 6px 12px; background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #3498db; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; outline: none; border-style: solid;">
+                    👁️ Profil Public
+                </button>
+            </div>
             <p id="profile-watchlist-badge" style="display: none; color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-bottom: 15px;">🎯 Ce joueur est sur la liste de surveillance</p>
 
             <!-- Stats -->
@@ -812,9 +817,12 @@
                     <h2 id="public-profile-player-name" style="margin: 0; color: #fff; font-size: 1.8rem; letter-spacing: 1px;">🪖 JOUEUR</h2>
                     <p id="public-profile-grade-name" style="margin: 5px 0 0 0; color: #3498db; font-weight: bold; font-size: 1.1rem; text-transform: uppercase;">GRADE MILITAIRE</p>
                 </div>
-                <div>
+                <div style="display: flex; gap: 10px;">
                     <button id="btn-compare-player" style="padding: 10px 18px; background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.3s; outline: none; border-style: solid;">
                         ⚖️ Comparer
+                    </button>
+                    <button id="btn-admin-manage-player" style="display: none; padding: 10px 18px; background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.3s; outline: none; border-style: solid;">
+                        🛡️ Gérer
                     </button>
                 </div>
             </div>
@@ -2586,12 +2594,7 @@
         });
 
         function ouvrirProfil(playerName) {
-            const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
-            if (isAdmin) {
-                ouvrirFicheJoueur(playerName);
-            } else {
-                ouvrirFicheJoueurPublique(playerName);
-            }
+            ouvrirFicheJoueurPublique(playerName);
         }
 
         // ========== PUBLIC PROFILE MODAL FUNCTIONS ==========
@@ -2600,6 +2603,13 @@
             const modal = document.getElementById('public-player-profile-modal');
             if (!modal) return;
             modal.style.display = 'block';
+
+            // Afficher le bouton Gérer uniquement si connecté Admin
+            const isAdmin = sessionStorage.getItem('admin_logged') === 'true';
+            const btnAdmin = document.getElementById('btn-admin-manage-player');
+            if (btnAdmin) {
+                btnAdmin.style.display = isAdmin ? 'flex' : 'none';
+            }
             
             document.getElementById('public-profile-player-name').textContent = `🪖 ${playerName}`;
             document.getElementById('public-profile-grade-icon').textContent = '🪖';
@@ -2969,6 +2979,17 @@
 
         document.getElementById('comp-p2-select')?.addEventListener('change', (e) => {
             actualiserComparaison(currentProfilePlayer, e.target.value);
+        });
+
+        // Event listeners pour les transitions Fiche Publique <=> Fiche Admin
+        document.getElementById('btn-admin-manage-player')?.addEventListener('click', () => {
+            document.getElementById('public-player-profile-modal').style.display = 'none';
+            ouvrirFicheJoueur(currentProfilePlayer);
+        });
+
+        document.getElementById('btn-back-to-public')?.addEventListener('click', () => {
+            document.getElementById('player-profile-modal').style.display = 'none';
+            ouvrirFicheJoueurPublique(currentProfilePlayer);
         });
 
         // ========== V3: DETAILS SESSIONS ==========
