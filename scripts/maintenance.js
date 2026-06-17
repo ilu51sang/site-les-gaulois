@@ -16,8 +16,9 @@
         // Obtenir le nom de la page courante
         const path = window.location.pathname;
         const isMaintenancePage = path.endsWith("maintenance.html");
+        const isStatsPage = path.endsWith("stats.html");
         
-        if (!isBypass && !isMaintenancePage) {
+        if (!isBypass && !isMaintenancePage && !isStatsPage) {
             window.location.replace("maintenance.html");
         }
     }
