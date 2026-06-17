@@ -1074,13 +1074,25 @@
             }
         }
 
-        btnAuthMap.addEventListener('click', () => {
-            if (mapPasswordInput.value === 'admin') {
-                sessionStorage.setItem('admin_logged', 'true');
-                authErrorMsg.style.display = 'none';
-                mapPasswordInput.value = '';
-                checkMapAuth(lastMapName, lastMapSize);
-            } else {
+        function getAdminPassword() {
+            return sessionStorage.getItem('admin_password') || '';
+        }
+
+        btnAuthMap.addEventListener('click', async () => {
+            const pwd = mapPasswordInput.value;
+            authErrorMsg.style.display = 'none';
+            try {
+                const res = await fetch(`${API_URL}/api/admin/stats-summary?password=${encodeURIComponent(pwd)}`);
+                if (res.ok) {
+                    sessionStorage.setItem('admin_logged', 'true');
+                    sessionStorage.setItem('admin_password', pwd);
+                    mapPasswordInput.value = '';
+                    checkMapAuth(lastMapName, lastMapSize);
+                } else {
+                    authErrorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Erreur d'authentification :", err);
                 authErrorMsg.style.display = 'block';
             }
         });
@@ -1093,6 +1105,7 @@
 
         btnLogoutMap.addEventListener('click', () => {
             sessionStorage.removeItem('admin_logged');
+            sessionStorage.removeItem('admin_password');
             checkMapAuth();
         });
 
@@ -1435,7 +1448,7 @@
         async function actualiserMetricsDashboard() {
             if (sessionStorage.getItem('admin_logged') !== 'true') return;
             try {
-                const res = await fetch(`${API_URL}/api/admin/metrics?password=admin&limit=${currentChartLimit}`);
+                const res = await fetch(`${API_URL}/api/admin/metrics?password=${encodeURIComponent(getAdminPassword())}&limit=${currentChartLimit}`);
                 if (!res.ok) return;
                 const metrics = await res.json();
                 
@@ -1470,7 +1483,7 @@
         async function actualiserStatsSummary() {
             if (sessionStorage.getItem('admin_logged') !== 'true') return;
             try {
-                const res = await fetch(`${API_URL}/api/admin/stats-summary?password=admin`);
+                const res = await fetch(`${API_URL}/api/admin/stats-summary?password=${encodeURIComponent(getAdminPassword())}`);
                 if (!res.ok) return;
                 const data = await res.json();
                 
@@ -1503,7 +1516,7 @@
             if (!tbody) return;
             
             try {
-                const res = await fetch(`${API_URL}/api/admin/sanctions-history?password=admin&limit=50`);
+                const res = await fetch(`${API_URL}/api/admin/sanctions-history?password=${encodeURIComponent(getAdminPassword())}&limit=50`);
                 if (!res.ok) return;
                 const sanctions = await res.json();
                 
@@ -1554,7 +1567,7 @@
             
             try {
                 const params = new URLSearchParams({
-                    password: 'admin',
+                    password: getAdminPassword(),
                     limit: limitVal,
                     filter: filterType,
                     search: searchVal,
@@ -2305,7 +2318,7 @@
 
         async function sendRconCommand(payload) {
             try {
-                payload.password = "admin";
+                payload.password = getAdminPassword();
                 const response = await fetch(`${API_URL}/api/admin/command`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2498,7 +2511,7 @@
             document.getElementById('profile-recent-logs').innerHTML = '<p style="color: rgba(255,255,255,0.4); font-style: italic;">Chargement...</p>';
 
             try {
-                const res = await fetch(`${API_URL}/api/admin/player/${encodeURIComponent(playerName)}?password=admin`);
+                const res = await fetch(`${API_URL}/api/admin/player/${encodeURIComponent(playerName)}?password=${encodeURIComponent(getAdminPassword())}`);
                 if (!res.ok) throw new Error('Erreur API');
                 const data = await res.json();
 
@@ -3120,7 +3133,7 @@
                 await fetch(`${API_URL}/api/admin/notes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: 'admin', player_name: currentProfilePlayer, note: note })
+                    body: JSON.stringify({ password: getAdminPassword(), player_name: currentProfilePlayer, note: note })
                 });
                 input.value = '';
                 ouvrirFicheJoueur(currentProfilePlayer); // Refresh
@@ -3136,7 +3149,7 @@
             if (!tbody) return;
 
             try {
-                const res = await fetch(`${API_URL}/api/admin/watchlist?password=admin`);
+                const res = await fetch(`${API_URL}/api/admin/watchlist?password=${encodeURIComponent(getAdminPassword())}`);
                 if (!res.ok) return;
                 const list = await res.json();
 
@@ -3176,7 +3189,7 @@
                 await fetch(`${API_URL}/api/admin/watchlist`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: 'admin', player_name: playerName, reason: reasonInput.value.trim() })
+                    body: JSON.stringify({ password: getAdminPassword(), player_name: playerName, reason: reasonInput.value.trim() })
                 });
                 playerInput.value = '';
                 reasonInput.value = '';
@@ -3188,7 +3201,7 @@
 
         async function retirerWatchlist(playerName) {
             try {
-                await fetch(`${API_URL}/api/admin/watchlist/${encodeURIComponent(playerName)}?password=admin`, { method: 'DELETE' });
+                await fetch(`${API_URL}/api/admin/watchlist/${encodeURIComponent(playerName)}?password=${encodeURIComponent(getAdminPassword())}`, { method: 'DELETE' });
                 chargerWatchlist();
             } catch (err) {
                 console.error("Erreur retrait watchlist:", err);
